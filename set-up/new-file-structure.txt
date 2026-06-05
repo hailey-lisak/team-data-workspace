@@ -1,0 +1,35 @@
+team-data-workspace/
+├── app/
+│   ├── api/ -> should be thin, only catches the request and hands data off to service files
+│   │   ├── users.py -> handles the registration of new users
+│   │   ├── workspaces.py -> creates a workspace, checks to make sure workspace belongs to the requesting user
+│   │   ├── records.py -> handles the data payload
+│   │   ├── jobs.py -> triggers and tracks long-running background tasks
+│   ├── models/ -> defines structure and validates data
+│   │   ├── domain.py -> defines how data behaves, where business logic will live
+│   │   ├── schemas.py -> the data validator; checks requests and filters out extra data
+│   ├── services/ -> coordinates the execution of a business goal (src code, I will not be creating sub .py files)
+│   │   ├── user_service.py
+│   │   ├── workspace_service.py
+│   │   ├── record_service.py
+│   │   ├── job_service.py
+│   ├── storage/ -> ignore, part 2...**file that print whats being created for now**
+│   │   ├── repository.py
+│   │   ├── in_memory.py
+│   │   ├── file_storage.py
+│   │   ├── persistence.py
+│   ├── jobs/ -> may not need, what jobs
+│   │   ├── processor.py
+│   │   ├── queue.py
+│   ├── main.py
+├── tests/ -> unit testing, integration testing
+│   ├── unit_testing.py
+│   ├── integration_testing.py
+├── README.md
+├── pyproject.toml
+├── .gitignore
+├── .env.example
+├── migrations/
+
+
+start with api and services

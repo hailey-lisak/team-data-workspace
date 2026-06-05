@@ -1,0 +1,262 @@
+1. API Layer (Application Programming Interface)
+***** MY UNDERSTANDING ***** The API layer is that it is what connects databases to the frontend UI. You make a request like using a search bar for example.
+***** When the request is made, the API packages up the search details along securing the system, making sure you aren't a bot. Then, the API talks
+***** between the systems; it's like the single point of contact and reaches out to all databases simultaneously. Then, the data is translated and
+***** and cleaned up to be in one, uniform format. Finally, the API layer sends to neat list back to the front end UI.
+
+    - acts as a secure, standarized intermediary between client applications and backend systems
+    - digital bridge or messenger that allows two different software programs to communicate and share data with each other automatically
+    - (a) connects external public data (third party APIs) to your app's ecosystem, or (b) connects frontend to backend
+        (a): If you built an app and want external develpers or public users to access your data safely.
+                * Your backend/database holds the raw, sensitive information.
+                * Your API layer sits in front of it, acting as a shielf. It ensures public users only see what they are allowed to see, 
+                    checks their API keys, and formats the data cleanly before handing it over.
+        (b): If your app needs outside data, your front end doesn't usually talk directly to that public source.
+                * Your frontend requests the data from your API layer.
+                * Your API layer reaches out to the public third-party API.
+                * The public API sends the data back to your API layer, which cleans it up, secures it, and passes it to your 
+                    backend/databse or straight to your user's screen.
+    - Real Life Example: Booking a Flight
+        * When searching flights, Expedia doesn't actually own the airplanes or host the live ticket schedules for hundreds of airlines on its own database.
+            - it has to ask the airlines for the data.
+            - [ Your Screen ] <---> [ Expedia's API Layer ] <---> [ Airline Databases ]
+            1. You make a request
+                * On the frontend UI, you select your dates and click "Search."
+                * API Layer: Takes your search details, packages them up cleaning, and checks to make sure you aren't a malicious bot trying to crash the site.
+            2. It talks to multiple systems.
+                * Expedia needs to ask Delta, United, and British Airways for their prices all at the same time.
+                * API Layer: Instead of making your phone handle three different connections, Expedia's API layer acts as the single point of contact.
+                    It reaches out to all three airlines' systems simultaneously. 
+            3. It translates the data.
+                * Delta may send its data back in a different format than United.
+                * API Layer: It takes all those different responses, strips out the unnecessary technical junk, and translates everything into a single,
+                    uniform format (usually JSON)
+            4. It delivers the response.
+                * API layer sends the neat, unified list of flights back to your screen.
+                * Your frontend recieves it and displays it in a clean, beautiful interface where you can easily compare prices.
+    - Swagger definitions **
+    ***** MY UNDERSTAND ***** it's a file that is easily readibly and contains all of the rules, pathways, and DSs of my API, and the swagger file can easily and automatically into a webpage
+        * a blueprint file written in a human- and machine-readable format (usualy YAML or JSON)
+        * defines the exact rules, pathways, and data structures of your API
+        * developers can take this blueprint file and automatically turn it into an interactive webpage
+        * Contains: 
+                    - paths/endpoints: exact URLS available
+                    - methods: what action is allowed on that path (ex. GET to fetch data, POST to send new data)
+                    - parameters: what inputs the API expects (ex. for a flight search, it specifies that it needs a departure_date (as a string) and an origin_airport(as a 3-letter code) )
+                    - responses: exactly what the API layer will return if successful or fails
+                    - Data Models (schemas): the exact shape of the data. (ex. defines that a "Flight" object must contain a price (float), airline (string), and flight_numer (int))
+    - Rest API (Representational State Transfer******** read about what each word means, examples)
+
+------------ Representational: When you request data from an API, the server doesn't hand over it's actual live database row or the raw backend code, it sends you a representation
+                                of that object that the app/browser can easily read.
+            State: the current condition, data, or status of a resource at a specific point in time
+            Trasfer: moving the representation of the state from the server to the client over the network, typically using HTTP
+            Example: Online Shopping
+                        * The Resource: my shopping cart 
+                        * State: Empty cart, so the database would read items: 0, total_price: 0.0
+                        * Representation: When you add an item to the cart, the browser creates a representation of what you want the new state to look like:
+                                    {"item_id: boots_1, "quantity": 1}
+                        * Transfer: the browser uses a HTTP (a POST request) to transfer this representation to the server.
+                        * The resulting change: Server processes it, updates master database, and resource's state changes.
+------------
+    ***** MY UNDERSTANDING ***** REST API is easier to read and use, so it's better for when other developers are going to be utilizing your API.
+        * one specific type of API
+        * specific subset of Web APIs; architectural style for designing web services
+        * simple, scalable, and predictable; any developer can look at a REST API endpoint (exact address where a specific resource lives) and immediately understand how to interact with it
+        * Rules:
+                    - uses HTTPS natively: relies entirely on web protocl verbs (GET/POST/PUT/PATCH/DELETE)
+                    - Statelessness: The server doesn't remember anything about your previous requests. Every single request from the client must contain all the information 
+                        (like API keys or user ID) needed to complete it. 
+                    - Resource-Oriented: everything is treated as a "resource" (a user, photo, product) and is mapped to a predicatable URL
+                    - Standard Data Formats: it almost always exchanges data using JSON (therefore readable and lightweight)
+    - HTTPS Request (look for examples of GET/POST in simple forms)
+------------GET (read): "look up this info and show it to me. "GET/profiles/hailey ; the server sends back Hailey's profile data
+            POST (create): "I want to create something new. here is the data, save it." POST/profiles (along with data like username and password); the server will create a new profile 
+            PUT or PATCH (update):  "I want to edit or update someting that already exists." PUT/profiles/hailey (along with new password) ; server updates password
+                                    * PUT replacess the entire resource with new data, PATCH just updates a small piece of it
+            DELETE (destroy): "get rid of this entirely." DELETE/profile/hailey ; deletes Hailey's profile
+                * don't hard delete in production because you completely lose it; you soft delete -> active or not active?
+                * most likely post requests 
+                * paginate
+                * S cache
+                * reddis (we are using!!) and memcache
+------------
+    ***** MY UNDERSTANDING ***** A request to the web server from the web browser for data that is created when you type a URL into the browser
+        * encrypted message sent from your web browser (the client) to a web server over the internet
+        * whenever you type a URL into your browser, click a link, or submit a form, your computer sends one of these requests to ask the server for data (like a web page, image, or API response)
+    - Processing API requests
+        * 4 Steps:
+            1. The Request
+                * Starts on client side. When an action happens (like a user logging in) the application packages an HTTPS request
+                * Client ships this package across the internet.
+            2. Authentication & Routing: API Gateway
+                * [Client] ---> ( API Gateway ) ---> [Backend Server] ---> [Database]
+                * process the administrative overhead so the main server DOESN'T have to:
+                        - SSL/TLS Decryption: take the encrypted HTTPS gibberish and decrypt is back into readable text using its private security keys
+                        - Authentication Check: look at the request headers for an API key (******what type of API key/security token authentication) or a security token. If the token is missing/expired, the Gateway
+                                blocks the request right here and throws an error.
+------------Standard API Key: it's a long, unique, random string of characters generated by the API provider
+                                * you pass it along with every single request so the server knows who is asking for the data
+                                * used for public data APIs or backend-to-backend communication where security risks are lower
+            Symmetric and assymetric encrpytion ??????/
+            JWT (JSON Web Tokens)/Bearer Token: whoever "bears" (holds) the token is granted access to the data; it's usually temporary and expires after a few hours
+                                * used in apps where users log in and out frequently
+                                *like temp password
+------------
+                        - Rate Limiting: check how many reuqests your IP address has sent in the last minute. If you're spamming the endpoint, it cuts
+                                you off to prevent the server from crashing. (******denial of service attacks)
+------------ DOS attacks: shuts down a system and makes it completely unusable for real users
+                * if everything looks clean, the gateway routes the request forward to the actual backend application server
+            3. Business Logic (officially inside the backend code)
+                * code handles the request using a function called a controller/route handler that is mapped directly to that endpoint
+                * 3 Main Steps:
+                                1. Parsing: reads the JSON body and converts it into a native code object it can manipulate
+                                2. Validation: double-checks that the data makes sense; it if fails, sends back an error
+                                3. Database interaction: server talks to the database. If it's a GET request, it runs a query to fetch data. 
+                                    If it's a POST request, it writes new data into the database rows.
+            4. The response
+                * database rows are turned back into a clean, lightweight string of JSON text and attaches an HTTP Status code
+                * Common Status Codes:
+                            200 OK or 201 Created: everything processed perfectly, here is your data.
+                            400 Bad Request: the client sent something wrong or malformed
+                            404 Not Found: the endpoint or the specific resource ID doesn't exist
+                            500 Internal Server Error: server's code crashed mid-processing
+                * server hands this response packet back to the gateway, which encrypts it back into HTTPS, and shoots it across the internet to the client.
+                    Your app prepares the JSON, updates the UI, and the user sees the final result.
+    
+    - Ownership enforcement/control
+    ***** MY UNDERSTANDING ***** Unless the user is the actual owner of data, they are not granted access even if they may be verified and authenticated
+        * the practice of preventing a massive security flaw known as BOLA (broken object-level authorization)
+                - one of the top vulnerabilities in web developer
+        * "Do you own this?"
+            - example: your apartment key card doesn't grant you access to anyone else's apartment except yours even though you are a verified, authorized resident of the building
+        * In an API, just because a user has a valid login token (authentication) doesn't mean they should be allowed to view or delete another user's data.
+        * without ownership enforcement, applications become incredibly vulnerable
+        * HOW OWNERSHIP IS ENFORCED IN THE API LAYER (multi-layered defense strategy handled across different parts of the backend architecture)
+            - The API Gateway / Middleware Layer (coarse control)
+                    * Before the request hits the core database logic, middleware functions inspect the incoming traffic token and match it against the request's structural path parameters
+                            - Tenant Isolation: in business software, the gateway ensures that a user from Company A cannot hit an endpoint belonging to Company B,
+                                    completely walling off entire systems based on a tenant ID embedded in the security token
+                            - Scope Validation: it checks if the token contains the specific permission scope required for that endpoint
+            - The Application/Code Layer (fine-grained control)
+                    * the API gateway usually doesn't know who owns every single row in a DB, so the backend code (controllers/route handlers) do most of the ownership enforcement
+                    * binds the query directly to the verified user ID extracted safely from the encrypted HTTPS request session
+                            - enforces that the requesting user must own the profile
+
+
+2. Service Layer - read about service layer just in general
+***** MY UNDERSTANDING ***** This layer contains the business logic which are all of the rules of your application. It's controls how data flows through the app.
+    - "brain" of a backend application
+    - dedicated script or set of files where the business logic and real-world rules of your application live
+    - takes raw requests from the outside world, decides what to do with them based on your business rules, and tells the database what to update
+    - Acts as the coordinator of how data flows through an application:
+                * Enforces Business Rules: where the actual logic of your project lives
+                        - ex: a rule like "If a user is a student at the University of Pittsburgh, give them a 10% discount" is written directly into the service layer code
+                * Import Orchestration: A single action often requires touching multiple parts of your app. The service layer imports functions from your user tools,
+                        your email notification tools, and your payment processors, making them run in a strict step-by-step sequence.
+                * Maintains Data Safety: ensures that a multi-step process either completely succeeds or completely rolls back
+    - Stops your web controller from having to talk directly to raw database rows
+    - Keeping business logic spearate allows your code to be incredibly flexible
+    - Monolith
+    ***** MY UNDERSTANDING ***** having the app's code organized into ONE massive unit allowing different modules to talk to each other easily 
+        * represents a specific way to organization your application's code
+        * A monolithic architecture means that your entire service layer (every single feature, background job, and endpoint handler) is compiled, bundled, and run together
+            as one single, massive software unit.
+        * Since everything lives in the same process, the different modules in your service layer talk to each other using standard programming language functions
+            - NO data overhead, NO encryption needed, and NO risk of a network drop between features because they share the exact same computer memory
+        * Single Deployment Line: when a single line of text is changed, the entire application must be rebuilt, re-tested, and redeployed to production as a single package
+        * Shared Database: typically connect to one large, centralized database. The service layer modules can easily perform database joins across different tables.
+        * Single Technical Stack: entire service layer is almost always written in one primary language and shares the same framework dependencies
+        * Low overhead: incredibly fast and completely avoids network latency (the delay it takes for data to travel from its source back to its destination)
+        * Very easy to trace a request from start to finish
+    - Record normalization
+    ***** MY UNDERSTANDING ***** prevents duplicate object references in memory by flattening nested data structures into a clean map with unique IDs
+        * the practice of flattening nested data structures into a clean, look-up based map organized by unique IDs.
+            - flattening: taking a complex, deeply nested structure and collapsing t into a single, flat, one-dimensional layer (removes heirarchy)
+        * primary goal is the ensure that while your backend code is running, every unique business entity exists in application memory exactly once.
+        * without it, the service layer may create duplicate object references in computer's memory
+            - this can lead to bugs, out of sync runtime memory, outdated data being passed to other functions, incorrect data being saved back to your systems
+        * How this works in code:
+            - service layer runs the raw data through a normalization step.
+                    - pulls out the nested child objects, flattens them, and replaces them with a simple string ID reference pointer
+    - Import orchestration
+    ***** MY UNDERSTANDING ***** Makes sure that when we execute a business action, it's tasks are run in order, imports are falttened/cleaned up, and handling when steps may fail
+        * the coordination, sequencing, and management of data and functions imported from multiple different modules, services, or third-party APIs to execute a single business transaction
+        * tells when, in what order, and how to combine outputs
+        * the architectural practice of writing a master controller function that imports individual, isolated data services and manages the step-by-step logic required to execute a complex business action safely
+                - business action: a single, complete real-world activity or operation that your application executes on behalf of a user or system
+                        - real world example: when placing an order, the business action includes validating the user's account, checking inventory levels, charging a credit card, etc. 
+        * manages 3 things:
+                            - Process Sequencing (control flow): running tasks in a strict order
+                            - Data Transformation & Translation: taking the output of one imported service, flattening or modifying it, and passing it as the input to the next service
+                            - Error handling & rollbacks (sagas): deciding what to do if one of the imported steps fails halfway through.
+    - Job orchestration
+    ***** MY UNDERSTANDING ***** Making sure that a job is run when initiated, puts jobs into the queue, decides when the nex job can run, and manages the pipeline
+        * Job: a specific unit of work or a task that a program is scheduled to run, often automatically and in the background without needing a user to click anything
+        * responsible for managing, scheduling, sequencing, and monitoring these background tasks
+        * ensures that complex, multi-step background processes run in the correct order, handle failures gracefully, and don't overload your server's CPU and memory causing a crash
+        * relies on 3 main archetictural components: a scheduler, a job/task queue, and worker processes
+        * Step by Step Process:
+                - Triggering/scheduling: service layer decides a job needs to run (either because a scheduled time was hit or an event occured)
+                - Queueing: the orchestrator places the job meetadata into a Job Queue so that the mains erver doesn't have to process the heavy lifting immediately
+                - Worker Allocation: separates server instances or background threads whose only job is to consume tasks from the queue (manages a pool of "workers")
+                            - the orchestrator hands the enxt available job to an idle worker
+                - Dependency Resolution (Sequencing): if a process requires multiple jobs to runin a specific order, the orchestrator manages the pipeline
+        * lets the orchestrator handle several critical failures automatically
+
+3. Repository/Storage Layer
+***** MY UNDERSTANDING ***** Where database logic is stored so that the software knows how to access our data in the actual database
+    - Repository: centralized data storage location where data, files, or source code are kept and managed
+    - the part of a backend application dedicated entirely to managing communication between your software and your physical database or data sotrage system
+            - the "hands" that physically reach into the database to extract, insert, update, or delete data
+    - separate database logic so business logic doesn't deal with raw database code
+    - Handles 3 core tasks:
+            * Abstraction (hiding database complexity)
+            * Hydration (translating raw data into objects)
+            * Centralizing Data Queries
+            - doesn't actually store data, only knows how to go get the data
+    - Relational DB
+    ***** MY UNDERSTANDING ***** A storage system that puts data into a table (rows/cols) and allows tables to be linked with IDs to help avoid object duplication
+        * a digital storage system that organizes data into highly structured, flat tables consisting of rows and columns
+        * "relational" because tables can be linked to one another using shared IDs.
+                - allows you to break your data down into clean, individual pieces to avoid duplication, while still letting your software stitch them back together instantly when needed
+                - great for storying cirtical information like user accounts, financial transactions, order histories
+        * Follows a strict blueprint called a schema:
+            - the architecture is build on 3 main concepts:
+                    1. Tables (relations): a specific category of data
+                    2. Columns (fields/attributes): the specific properties or traits of that category
+                    3. Rows (Records/Tuples): individual entries inside the table; each row represents one unique real-world item
+        * Guarantees ACID compliance
+                - a set of strict properties that ensures your database transactions are perfectly safe and reliable, even if the server crashes or loses power mid-operation
+    - Row Based Storage: a method of organizing DB tables where data is physically written to the disk row by row
+                * reads and writes an entire horizontal row (a complete record) as a single, continuous block of data on your hard drive
+    - Postgres: highly powerful, open source relational database management system
+        * designed to handle massive volumes of data, enforce data integrity, and execute complex queries flawlessly
+        * incredibly reliable, feature-rich, and conforms strictly to open web and data standards
+        * uses row based storage
+    - Non Relational DB
+    ***** MY UNDERSTANDING ***** Doesn't use rows/cols to organize data and it's good for rapidly changing and unstructured data
+        * a storage system that does not organize data into the traditional, rigid grid of rows and columns like relational DBs
+        * designed to handle unstructured, semi-structured, or rapidly changing data
+        * skips the strict blueprint (schema) and relational lnks in favor of flexible, highly specific sttorage formats that allow you to read/write massive amounts of data at lightning speed
+                - relational links: logical connects between different tables that allow you to break your data apart into clean. independent tables to avoid duplication
+        * 4 Main Types:
+                1. Document DBs: stores data as individual files, typically in JSON format; every doc can have a diff structure
+                2. Key-Value Stores: acts like a massive dictionary where every single item is a basic pair
+                3. Wide-Column Stores: organize data into flexible rows that can contain billions of dynamic columns    
+                4. Graph Databases: focus entirely on the relationships between data   
+                    - they use nodes (entities) and edges (connections)
+                    - used heavily for social networks or fraud-detection networks
+    - Columnar Storage: a method of organizing daabase tables wehre data is physically written and stored on the hard drive column by column, rather than row by row
+                * turns the table sideways adn groups all the data for a single column together in one continuous block of storage
+                * used when you need to find massive, high-level trends
+    - MongoDB: one of the most popular non-relational DBs in the world
+                * stores data as flexible, self-contained documents
+                * designed to handle unstructured or semi-structured data, adapt rapidly to changing business rules, and scale horizontally across multiple servers as an application grows
+                * packages data into individual files that use a format called BSON
+    - In-memory implementation: 
+    ***** MY UNDERSTANDING ***** Running software and storing data on your computer's RAM; everything in memory will vanish if server goes down
+                * a way of running software or storing data where everything is kept entirely inside your computer's RAM rather than a physical hard drive
+                * in backend developemt and testing, this is a massvie superpower for speed but with one catch:
+                            - if the power cuts out or the server restarts, everything in memory vanishes instantly
+                * used when extreme speed or temporary isolation is #1 priority and you aren't worried about data disappearing forever if system shuts down

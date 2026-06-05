@@ -1,0 +1,345 @@
+Overall Architecure
+    * Application Overview: Build a buffered data workspace for:
+        - users
+        - workspaces
+        - workspace-scoped records
+        - CSV import
+        - record processing jobs
+        - job status tracking
+    * Core Architecture Layers
+        1. API Layer - READ AND GET REAL LIFE EXAMPLES, swagger definitions behind API, REST APIs, HTTPS Request, Processing API requests, ownership enforcement/access control
+            - HTTP endpoints
+            - request validation
+            - response shaping
+            - ownership enforcement
+        2. Service Layer - READ about monolith, record normalization
+            - business logic
+            - ?????record normalization
+            - ?????import orchestration
+            - ownership rules
+            - ?????job orchestration
+        3. Repository/storage layer - basically databases (**relational (row based storage, postgres) /**non relational (columnar storage, mongoDB) databases), 
+            - data access interfaces
+            - ???? in-memory implementation (Part 1)
+            - persistence implementation (Part 2)
+        4. Job processing layer
+            - process queue / worker
+            - ecord validation
+            - tagging
+            - status updates
+        5. Models / DTOs
+            - domain objects
+            - persistence models
+            - API schemas
+        ---*****new text file, read and create a real example
+
+Application Layer - PART 1
+    * Goal: build the complete application behavior with temporary storage and prove the API,
+        business logic, and job flow.
+    * Deliverables:
+        - working FastAPI application
+        - in-memory or file-backed data storage
+        - user/workspace ownership enforcement
+        - CSV import endpoint
+        - record listing endpoint
+        - processing job trigger endpoint
+        - job status endpoint
+        - tests for core business behavior
+        - documentation / README
+    * Component Responsibilities:
+        app/main.py
+            - instantiate FastAPI app
+            - mount routers
+            - register startup/shutdown
+            - expose GET /health
+        app/api/routers.py
+            - configure route registration
+            - combine users, workspaces, records, jobs
+        app/api/users.py
+            - POST /users
+            - create new user
+            - return user id/name
+        app/api/workspaces.py
+            - POST /workspaces
+            - create workspace and assign owner
+            - verify owner payload    
+        app/api/records.py
+            - POST /workspaces/{workspace_id}/records/import
+                - upload CSV / payload
+                - parse rows
+                - skip blank rows
+            - assign workspace ownership
+                - GET /workspaces/{workspace_id}/records
+                - list workspace records only
+        app/api/jobs.py
+            - POST /workspaces/{workspace_id}/jobs/process
+                - create/process job
+                - start background work
+            - GET /jobs/{job_id}
+                - job status and results
+        app/models/domain.py
+            - define domain types:
+                - User
+                - Workspace
+                - Record
+                - Job
+        app/models/schemas.py
+            - request/response Pydantic models
+            - schema for import payload
+            - schema for job status
+        app/services/user_service.py
+            - business operations for users
+            - create and retrieve users
+        app/services/workspace_service.py
+            - workspace creation
+            - ownership verification
+            - workspace retrieval
+        app/services/record_service.py
+            - import records
+            - normalize record fields
+            - validate record fields
+            - assign tags
+            - list workspace records
+        app/services/job_service.py
+            - create and track jobs
+            - orchestrate processing
+            - update status
+            - expose query results
+        app/storage/repository.py
+            - repository interfaces:
+                - UserRepository
+                - WorkspaceRepository
+                - RecordRepository
+                - JobRepository
+        app/storage/in_memory.py (Part 1)
+            - implement repository interfaces with dictionaries
+            - simple unique ID generation
+            - state kept in process memory
+            - good for fast prototypes
+        app/storage/file_storage.py (optional Part 1)
+            - optional local JSON file backing
+            - still interface-based
+            - useful for restart persistence without DB
+        app/jobs/processor.py
+            - record processing logic:
+                - trim whitespace
+                - lowercase email
+                - mark invalid if email missing
+                - assign tags:
+                    - complete
+                    - missing_email
+                    - missing_company
+                    - incomplete
+        update records with validation and tags
+        app/jobs/queue.py
+            - simple queue abstraction
+            - optional worker thread/process
+            - can be internal to the FastAPI process
+Execution Plan - PART 1
+1. Scaffold project
+    * create app/ and tests/ directories, pyproject.toml, .gitignore, README.md
+    * install FastAPI, Uvicorn, pytest
+2. Define domain model (set of classes or DS that represent the real concepts the app is working with)
+    * implement app/models/domain.py - defines the core business entities/represents the app's internal data concepts
+        - what the app is working with internally
+    * implement app/models/schemas.py - defines API structures/used for request validation and response formatting
+        - how data enters and leaves the app through the API
+3. Define repository interfaces
+    - a code file that defines the data access layer
+        - holds the repositiory interfaces/abstractions
+        - describes how the app reads and writes data
+        - Repository: represents a collection of domain objects
+            - HIDES STORAGE DETAILS from the rest of the app
+            - services ask the repository for data, not raw DB/files
+    * implement app/storage/repository.py
+    * define method contracts for CRUD and queries
+        - CRUD: Create, Read, Update, Delete
+            - Example: create a user, read a workspace, update record after processing delete a job if needed
+        - Query: request for data
+        - "defining contracts": writing the function names and in/outputs without deciding how they work yet
+4. Implement in-memory storage
+    * implement app/storage/in_memory.py
+    * use dictionaries and lists
+    * ensure ownership filtering in repository methods
+5. Implement services
+    - a layer of code that implements business rules and orchestration
+    - keeps business logic centralized, testable, and controllers/routers thin
+    - validates, authorizes, orchestrates, transforms, handles errors, and keeps logic storage-agnostic
+        - agnostic: not tied to a specific choice; makes code easier to test, replace, maintain
+    * user_service.py
+    * workspace_service.py
+    * record_service.py
+    * job_service.py
+    * keep logic independent of storage implementation
+6. Implement processing logic
+    - code that takes raw imported records and applies the business rules
+        to transform, validate, and classify them so they become usable data
+    - turns raw CSV rows into normalized, validated domain Records and assign a tag/status
+    * build app/jobs/processor.py
+    * create clear tag decision tree
+    * ensure records are normalized consistently
+7. Implement API routes
+    - API routes: the URLs your app exposes so external clients can talk to it
+    - each route is one endpoint that doesn one thing
+        - Example: POST/users -> create new user
+    * build endpoints in app/api/*.py
+    * wire services through dependency injection
+    * enforce user/workspace ownership checks at API layer
+    * expose GET /health
+8. Add tests
+    * tests/test_services.py
+    * normalization unit tests
+    * tag assignment tests
+    * ownership business rules
+    * tests/test_api.py
+    * endpoint behavior
+    * import and processing job flow
+    * ests/test_storage.py
+    * storage behavior for in-memory repo
+9. Document
+    * README.md
+    * architecture summary
+    * how to run
+    * how to test
+    * known limitations
+
+
+POST: "send this to the server"
+    - used to create something or trigger an action
+    - can change server state
+GET: "give me this data"
+    - used to read or fetch information
+    - should not change server state
+
+-------------------------------------------------------------------------------------
+Part 2
+ * Goal: Replace the temporary repository implementation with a real database-backed persistence layer 
+    while preserving the same application behavior and API.
+* Deliverables:
+    - SQLAlchemy ORM models
+    - schema setup / migrations
+    - DB-backed repository implementations
+    - updated tests for persistence
+    - same service logic and API shape as Part 1
+    - clear transition strategy in docs
+* Detailed Component Responsibilites:
+    app/storage/persistence.py
+        - SQLAlchemy engine setup
+        - session management
+        - repository implementations
+        - CRUD operations against a database
+    app/models/domain.py
+        - keep domain objects unchanged
+        - map ORM models to domain objects either via converters or Pydantic schemas
+    app/models/schemas.py
+        - equest/response schemas remain the same
+        - no API-level change required
+    app/core/config.py
+        - add DB connection config
+        - DATABASE_URL from .env
+        - optional SQLite or PostgreSQL configuration
+    app/core/deps.py
+        - provide DB session dependency
+        - choose repository implementations based on config
+        - keep services storage-agnostic
+    migrations/
+        - store migration scripts
+        - create tables:
+            - users
+            - workspaces
+            - records
+            - jobs
+        - preserve unique IDs and relationships
+* Storage Schema
+    - users
+        - id
+        - name
+    - workspaces
+        - id
+        - user_id
+        - name
+    - records
+        - id
+        - workspace_id
+        - name
+        - email
+        - company
+        - city
+        - notes
+        - status / valid flag
+        - tag
+    - jobs
+        - id
+        - workspace_id
+        - status
+        - created_at
+        - completed_at
+        - summary / metrics
+* Behavior 
+    - same API endpoints
+    - same services
+    - repository swap only
+    - raw data now persisted safely
+    - enable repeated app restarts with stored data
+* Execution Plan
+1. Add DB config
+    update app/core/config.py
+    add .env.example
+    choose SQLite first for easiest local setup
+2. Add ORM models
+    define SQLAlchemy models in app/storage/persistence.py or app/models/orm.py
+    mirror domain fields and relationships
+3. Add migrations
+    add a migration tool or simple schema create script
+    add migrations/ folder
+4. Implement repository classes
+    add SQLAlchemy-backed UserRepository, WorkspaceRepository, RecordRepository, JobRepository
+    keep method signatures identical to Part 1 interfaces
+5. Swap storage
+    update dependency wiring in app/core/deps.py
+    instantiate persistence repo instead of in-memory repo
+    keep service layer unchanged
+6. Update tests
+    add DB-backed repository tests
+    optionally use SQLite in-memory for tests
+    keep service and API tests valid
+7. Document migration
+    explain Part 2 storage change in README.md
+    note that business rules remain same
+    include commands to initialize DB
+------------------------------------------------------------------------------
+* Data flow
+    HTTP request → API router
+    router validates schema
+    router calls service
+    service enforces ownership + business rules
+    service calls repository methods
+    repository reads/writes storage
+    job service triggers processor
+    processor updates record states
+    API returns structured response
+
+Ownership Bounderies:
+    * workspace always belongs to a single user
+    * every record belongs to exactly one workspace
+    * all record listing and job actions are scoped to workspace and owner
+
+Separation of Concerns:
+    - API only handles transport and validation
+    - services handle business decisions
+    - repositories handle persistence
+    - jobs handle background processing
+    - domain models capture business state
+
+Job processing
+    import CSV
+    create job object
+    process records one-by-one
+    trim text fields
+    lowercase email
+    tag record
+    mark invalid when needed
+    record status updated
+    job status query returns progress and result
+
+
