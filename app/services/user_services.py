@@ -10,6 +10,9 @@ def create_user(name: str, email: str) -> dict:
     Generates a random ID, strips hyphens (.hex), and cuts it down to the first 8 characters ([:8])
     '''
     user_id = f"usr_{uuid.uuid4().hex[:8]}"
+    '''
+        NEED CREATED_AT
+    '''
     
     '''
     new_user = dictionary
