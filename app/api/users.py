@@ -7,7 +7,7 @@ pydantic: acts as a strict data validation gatekeeper
                 - gives access to built-in helper methods which instantly turns validated data back into a standard Python dictionary
 ''' 
 from pydantic import BaseModel, EmailStr
-from app.services import user_service
+from app.services import user_services
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ class UserCreateRequest(BaseModel):
 
 @router.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(payload: UserCreateRequest):
-    saved_user = user_service.create_user(
+    saved_user = user_services.create_user(
         email = payload.email,
         name = payload.name,
     )
