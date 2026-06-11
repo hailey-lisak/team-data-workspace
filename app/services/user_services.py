@@ -5,14 +5,13 @@ uuid = Universally Unique Identifier
 '''
 
 import uuid
+from datetime import datetime, timezone
 def create_user(name: str, email: str) -> dict:
     '''
     Generates a random ID, strips hyphens (.hex), and cuts it down to the first 8 characters ([:8])
     '''
     user_id = f"usr_{uuid.uuid4().hex[:8]}"
-    '''
-        NEED CREATED_AT
-    '''
+    created_at = datetime.now(timezone.utc).isoformat()
     
     '''
     new_user = dictionary
@@ -22,7 +21,8 @@ def create_user(name: str, email: str) -> dict:
     new_user = {
         "user_id": user_id,
         "name": name.strip(),
-        "email": email.strip().lower()
+        "email": email.strip().lower(),
+        "created_at": created_at
     }
 
     print("\n"+"="*40)
@@ -31,6 +31,7 @@ def create_user(name: str, email: str) -> dict:
     print(f" - User ID: {new_user['user_id']}")
     print(f" - Name: {new_user['name']}")
     print(f" - Email: {new_user['email']}")
+    print(f" - Created At: {new_user['created_at']}")
     print("="*40 + "\n")
 
     return new_user
