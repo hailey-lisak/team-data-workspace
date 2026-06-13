@@ -7,7 +7,7 @@ def create_workspace(name: str, user_id: str) -> dict:
 
     new_workspace = {
         "workspace_id": workspace_id,
-        "name:": name.strip(),
+        "name": name.strip(),
         "user_id": user_id.strip(),
         "created_at": created_at
     }

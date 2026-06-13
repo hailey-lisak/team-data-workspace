@@ -10,6 +10,7 @@ class RecordCreateRequest(BaseModel):
     email: EmailStr
     company: str
     city: str
+    notes: str
 
 @router.post("/records", status_code=status.HTTP_201_CREATED)
 def create_record(payload: RecordCreateRequest):
@@ -18,6 +19,7 @@ def create_record(payload: RecordCreateRequest):
         name = payload.name,
         email = payload.email,
         company = payload.company,
-        city = payload.city
+        city = payload.city,
+        notes = payload.notes
     )
     return saved_record
