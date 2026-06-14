@@ -8,7 +8,7 @@ class WorkspaceCreateRequest(BaseModel):
     name: str
     user_id: str
 
-@router.post("/workspace", status_code=status.HTTP_201_CREATED)
+@router.post("/workspaces", status_code=status.HTTP_201_CREATED)
 def create_workspace(payload: WorkspaceCreateRequest):
     saved_workspace = workspace_services.create_workspace(
         name = payload.name,
