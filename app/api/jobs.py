@@ -7,9 +7,9 @@ router = APIRouter()
 class JobCreateRequest(BaseModel):
     workspace_id: str
     
-@router.post("/jobs", status_code=status.HTTP_201_CREATED)
-def create_job(payload: JobCreateRequest):
+@router.post("/jobs/process", status_code=status.HTTP_201_CREATED)
+def create_job(workspace_id: str):
     saved_job = job_services.create_job(
-        workspace_id = payload.workspace_id,
+        workspace_id = workspace_id,
     )
     return saved_job
