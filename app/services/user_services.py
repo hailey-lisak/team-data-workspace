@@ -6,7 +6,7 @@ uuid = Universally Unique Identifier
 
 import uuid
 from datetime import datetime, timezone
-def create_user(name: str, email: str) -> dict:
+def create_user(email: str, name: str) -> dict:
     '''
     Generates a random ID, strips hyphens (.hex), and cuts it down to the first 8 characters ([:8])
     '''
@@ -27,7 +27,7 @@ def create_user(name: str, email: str) -> dict:
 
     print("\n"+"="*40)
     print("STORAGE EVENT: TEMPORARY PRINT OUT")
-    print(f"Successfully Creted New User Profile:")
+    print(f"Successfully Created New User Profile:")
     print(f" - User ID: {new_user['user_id']}")
     print(f" - Name: {new_user['name']}")
     print(f" - Email: {new_user['email']}")

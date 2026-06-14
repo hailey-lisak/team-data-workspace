@@ -14,7 +14,7 @@ def create_workspace(name: str, user_id: str) -> dict:
 
     print("\n"+"="*40)
     print("STORAGE EVENT: TEMPORARY PRINT OUT")
-    print(f"Successfully Creted Workspace:")
+    print(f"Successfully Created Workspace:")
     print(f" - User ID: {new_workspace['user_id']}")
     print(f" - Name: {new_workspace['name']}")
     print(f" - Workspace ID : {new_workspace['workspace_id']}")

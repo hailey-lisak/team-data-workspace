@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from pydantic import EmailStr
 
-def create_record(workspace_id: str, name: str, email: EmailStr, company: str, city: str, notes: str = "") -> dict:
+def create_record(workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
     '''should every id be truncated to 8 characters?'''
     record_id = f"rec_{uuid.uuid4().hex[:8]}"
     created_at = datetime.now(timezone.utc).isoformat()
