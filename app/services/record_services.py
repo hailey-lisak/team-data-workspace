@@ -1,7 +1,13 @@
 import uuid
 from datetime import datetime, timezone
 from pydantic import EmailStr
-
+'''
+More logic here because it's a Data Validation and Categorization Engine
+    - job is to look at a messy incoming record, analyze its contents, and make executive decisions about it
+    - just has a big checklist
+created_at vs processed_at
+    - when a request was made vs when the server finished dealing with it
+'''
 def create_record(workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
     '''should every id be truncated to 8 characters?'''
     record_id = f"rec_{uuid.uuid4().hex[:8]}"
