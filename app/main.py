@@ -10,10 +10,8 @@ app = FastAPI(
 app.include_router(users.router, tags=["Users"])
 app.include_router(workspaces.router, tags=["Workspaces"])
 
-app.include_router(jobs.router, tags=["Jobs"])
 
 app.include_router(records.router, prefix="/workspaces/{workspace_id}", tags=["Records"])
-
 app.include_router(jobs.router, prefix="/workspaces/{workspace_id}", tags=["Jobs"])
 
 @app.get("/")
