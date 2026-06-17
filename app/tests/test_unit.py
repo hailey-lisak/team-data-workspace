@@ -1,6 +1,7 @@
 from app.services.user_services import create_user
 from app.services.workspace_services import create_workspace
 from app.services.record_services import create_record
+from app.services.job_services import create_job
 
 def test_user_service_cleaning():
     '''
@@ -45,3 +46,13 @@ def test_record_service_rejected_logic():
     )
     assert result["status"] == "rejected"
     assert "invalid email" in result["error_message"].lower()
+
+def test_job_service_creation():
+    """Test that jobs are initialized with a workspace link and pending status"""
+    # Pass ONLY the workspace_id that your service expects
+    result = create_job(workspace_id="wsp_12345678")
+    
+    assert result["workspace_id"] == "wsp_12345678"
+    assert result["status"] == "pending"               # All newly created jobs start as pending
+    assert result["job_id"].startswith("job_")
+    assert "created_at" in result                      # Ensure it stamped the arrival time
