@@ -2,7 +2,11 @@ from app.services.user_services import create_user
 from app.services.workspace_services import create_workspace
 from app.services.record_services import create_record
 from app.services.job_services import create_job
-
+'''
+assert -> like a quality control inspector
+    - if the code works, Python just quietly continues
+    - if it fails, it evaluates to false and stops running the test. it will throw an AssertionError
+'''
 def test_user_service_cleaning():
     '''
     Tests that user service properly cleans text and formats IDs
