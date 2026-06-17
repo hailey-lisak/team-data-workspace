@@ -4,20 +4,11 @@ from app.main import app
 # Spin up our virtual web server client
 client = TestClient(app)
 
-# ----------------------------------------------------
-# 1. CORE / STATUS ENDPOINTS
-# ----------------------------------------------------
-
 def test_root_endpoint():
     """GET / -> Test that the home page displays the functional message"""
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Team Data Workspace API is functional."}
-
-
-# ----------------------------------------------------
-# 2. USER ENDPOINTS
-# ----------------------------------------------------
 
 def test_create_user_success():
     """POST /users -> Test successful user creation and Pydantic outputs"""
@@ -36,11 +27,6 @@ def test_create_user_validation_error():
     response = client.post("/users", json=payload)
     assert response.status_code == 422
 
-
-# ----------------------------------------------------
-# 3. WORKSPACE ENDPOINTS
-# ----------------------------------------------------
-
 def test_create_workspace_success():
     """POST /workspaces -> Test creating a workspace linked to a user"""
     payload = {"user_id": "usr_12345678"}
@@ -52,10 +38,6 @@ def test_create_workspace_success():
     assert data["workspace_id"].startswith("wsp_")
     assert data["user_id"] == "usr_12345678"
 
-
-# ----------------------------------------------------
-# 4. NESTED WORKSPACE ENDPOINTS (RECORDS & JOBS)
-# ----------------------------------------------------
 
 def test_create_record_nested_success():
     """POST /workspaces/{id}/records -> Test processing a pristine record"""
