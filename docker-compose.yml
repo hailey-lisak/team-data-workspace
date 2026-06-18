@@ -1,18 +1,53 @@
-version: '3.8'
+# YAML = "Yet Another Markup Langaue"
+# Just a text file used to store configurations
+# This is the blueprint we give to Docker
+#       - it tells Docker exactly how to build and configure the database contianer for us
+#         so that we don't have to install anything directly onto my Mac
 
-services:
-  db:
-    image: postgres:15-alpine
+version: '3.8' # specifies what version of the Docker Compose configuration format we are using
+
+services: #below this line is a list of the containers (or services) that I need built and run for my application
+  db: 
+    # Tells Docker to go to Docker Hub and download a pre-made, optimized package of
+    # PostgreSQL version 15
+    # alpine : use a hyper-lightweight version of Linux to save Mac disk space
+    # Remember:  an image is like a blueprint 
+    image: postgres:15-alpine 
+
+    # Simply naming the container
+    # Remember: a container is the actual live, running instance of a Docker image
     container_name: team_data_db
+
+    # Tells Docker to automatically keep the container running in the background 
+    # even if the computer goes to sleep, restarts, or the DB encounters a random crash
     restart: always
+
+    # Initializes the DB with a 
+    # master username (postgres)
+    # master access password (password)
+    # creates an emtpy DB (workspace_db) 
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: workspace_db
+    
+    # Creates a bridge between my MAc's network and the container's network
+    # DB communicate over digital "ports" -> Postgre defaults to port 5432
+    # "When my FastAPI app sends data to port 5432 on my local Mac,
+    # forward that traffic straight into the container's port 5432"
+    # 5432 is PostgreSQL's unique port number
     ports:
       - "5432:5432"
+
+    # Containers are temporary, so if you turn a container off, everything inside it vanishes
+    # To prevent users and workspaces from being deleted every time I close the terminal,
+    # this tells Docker to create a persistent folder on my Mac's physical hard drive
+    # named postgres_data and link it to where PostgreSQL saves data inside the container.
+    # Makes my data persist across restarts.
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+# Registers the postgres_data persistent storage volume at the global level
+# so Docker knows to allocate space for it
 volumes:
   postgres_data:
