@@ -23,7 +23,11 @@ engine = create_engine(DATABASE_URL)
 # bind=engine: links this session factory directly to the specific db network engine we created on the line above it
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 
+# creates a master catalog that links my Python classes straight to physical tables inside PostgreSQL
+# Without this. Python classes are just standard objects floating in memory, and PostgreSQL tables are just standard rows and cols on a disk.
+# Base is what binds them together.
+# this is ORM (object-relational mapping)
+# "declarative": everything is declared in one place
 Base = declarative_base()
 
 # Helper function specifically for FastAPI
