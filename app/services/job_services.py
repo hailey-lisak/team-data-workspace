@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime, timezone
 
+# Responsible for updating the db so the frontend knows what's happening
+# connects frontend to backend
 def create_job(workspace_id: str) -> dict:
     job_id = f"job_{uuid.uuid4().hex[:8]}"
     created_at = datetime.now(timezone.utc).isoformat()
@@ -8,12 +10,12 @@ def create_job(workspace_id: str) -> dict:
     new_job = {
         "job_id": job_id,
         "workspace_id": workspace_id.strip(),
-        "status": "completed",
+        "status": "pending",
         "total_records": 0,
         "error_message": None,
         "created_at": created_at,
-        "started_at": created_at,
-        "completed_at": created_at
+        "started_at": None,
+        "completed_at": None
     }
 
     print("\n"+"="*40)
@@ -38,7 +40,7 @@ def get_job_status(job_id: str) -> dict:
     print("="*40 + "\n")
     return {
         "job_id": job_id.strip(),
-        "status": "completed",
+        "status": "completed", #hardcoded, will be fixed in part 2
         "total_records": 0,
         "error_message": None,
         "created_at": datetime.now(timezone.utc).isoformat(),

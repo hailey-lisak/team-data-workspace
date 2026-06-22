@@ -17,6 +17,11 @@ router = APIRouter()
 '''
 Stores email and name data while verifying that the data is safe and correctly formatted
 Belongs to the API layer, job is external -> faces public internet and handles validation
+
+BaseModel: translates incoming raw JSON text into a clean Python object
+            - checks every piece of incoming data against the specified types
+            - automatically builds my interactive Swagger API documentation page
+                    (which reads class and says exacly what fields my API expects to recieve)
 '''
 class UserCreateRequest(BaseModel):
     email: EmailStr

@@ -69,4 +69,6 @@ def test_create_job_nested_success():
     data = response.json()
     assert data["job_id"].startswith("job_")
     assert data["workspace_id"] == "wsp_99999999"
-    assert data["status"] == "completed"
+    assert data["status"] == "pending"
+    assert data["started_at"] is None
+    assert data["completed_at"] is None

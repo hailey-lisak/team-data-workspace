@@ -60,6 +60,8 @@ def test_job_service_creation():
     result = create_job(workspace_id="wsp_12345678")
     
     assert result["workspace_id"] == "wsp_12345678"
-    assert result["status"] == "completed"               # All newly created jobs start as pending
+    assert result["status"] == "pending"               # All newly created jobs start as pending
     assert result["job_id"].startswith("job_")
     assert "created_at" in result                      # Ensure it stamped the arrival time
+    assert result["started_at"] is None
+    assert result["completed_at"] is None

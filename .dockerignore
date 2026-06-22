@@ -1,0 +1,16 @@
+# Ignore tests and caches
+tests/
+__pycache__/
+
+# Virtualenvs
+.venv/
+venv/
+
+# Git
+.git
+
+# macOS
+.DS_Store
+
+# Dockerfile output
+docker/

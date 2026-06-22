@@ -42,10 +42,25 @@ class WorkspaceModel(Base):
     name = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class RecordModel(Base):
+    __tablename__ = "records"
+    #oops, it String supposed to have an int param for all of these ??
+    record_id = Column(String, primary_key=True, index=True) # Could remove index from all primary keys
+    workspace_id = Column(String, ForeignKey("workspaces.workspace_id"), nullable=False)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True,nullable=False, index=True)
+    company = Column(String, nullable = True)
+    city = Column(String, nullable = True)
+    notes = Column(Text, nullable = True)
+    is_valid = Column(Boolean, nullable=False, default=False)
+    tag = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    processed_at = Column(DateTime(timezone=True), nullable=True)
+
 # Why would index ever be False?
 # Because it comes with a cost.
 # Everytime we set eindex=True, PostgreSQL builds a hidden companion table to speed up searches
 # The Penalty: everytime we insert a new user or update a name, PostgreSQL has to stop and rewrite those index files.
 #       If we index every column, saving data becomes incredibly slow.
 # The Rule of Thumb: only set index=True on columns you know you will use constantly in yur code's search queries 
-#       (like IDs, emails, usernames). For everything else (like a profile bio), leave it False.
+#       (like IDs, emails, usernames). For everything else (like a profile bio), leave it False
