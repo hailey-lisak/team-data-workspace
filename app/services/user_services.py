@@ -25,6 +25,12 @@ def create_user(email: str, name: str) -> dict:
         "created_at": created_at
     }
 
+    #save to database where the orm comes in to play instead of printing
+    #this is how the functions in the orm connects to the api
+    #once its saved it has to be persistent 100% before it can be used for anything ekse
+    #all we do is call the function and let the library handle it 
+
+    #work on orm and trace the call, create diagram on how its functioning
     print("\n"+"="*40)
     print("STORAGE EVENT: TEMPORARY PRINT OUT")
     print(f"Successfully Created New User Profile:")

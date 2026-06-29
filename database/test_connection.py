@@ -1,47 +1,54 @@
 import psycopg2
 import os
+from dotenv import load_dotenv
+
+# Load the keys from the .env file at the root of the project
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 def test_db_connection_and_setup():
     connection = None
     try:
-        print("🔄 Attempting to connect to local PostgreSQL...")
+        print("🔄 Attempting to connect to local PostgreSQL securely...")
         
-        # 1. Connect to your local Mac Postgres instance
+        # Fetch credentials securely from the environment variables
         connection = psycopg2.connect(
-            user="postgres",
-            password="harper5802",  # <--- Replace this with your actual installer password!
-            host="localhost",
-            port="5432",
-            database="postgres"  # Default database created by the installer
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            database=os.getenv("DB_NAME")
         )
         
+        #specific object responsible for taking a raw SQL command from Python, running it across the pipeline to the Postgres database, and bringing back the answer
         cursor = connection.cursor()
         
-        # 2. Verify the connection by checking the database version
+        # Verify connection
         cursor.execute("SELECT version();")
         db_version = cursor.fetchone()
-        print("✅ CONNECTION SUCCESSFUL!")
+        print("✅ SECURE CONNECTION SUCCESSFUL!")
         print(f"   PostgreSQL Version: {db_version[0]}\n")
         
-        # 3. Read and execute your create_tables.sql script
+        # Read and execute layout script
         sql_script_path = os.path.join(os.path.dirname(__file__), "create_tables.sql")
-        
         print(f"📜 Reading database layout from {sql_script_path}...")
+        # reads all text inside create_tables.sql file and turns it into a normal Python string variable
         with open(sql_script_path, "r") as sql_file:
             sql_script = sql_file.read()
             
         print("🛠️ Creating tables (users, workspaces, jobs, records)...")
+        # hands massive string of SQL text to the runner and tells it to execute it in Postgres
+        # tables are set up in temporary "draft" mode; they aren't permanently saved yet
         cursor.execute(sql_script)
         
-        # Save the changes to the database
+        # permanently saves the tables once it runs perfectly with no syntax errors
         connection.commit()
-        print("🎉 SUCCESS: All tables built cleanly with no syntax errors!")
-        
+        print("🎉 SUCCESS: All tables verified securely with no syntax errors!")
         cursor.close()
         
     except Exception as error:
         print(f"\n❌ SCRIPT FAILED: {error}\n")
         if connection:
+            # deletes temporary tables built during this run so our db isn't corrupted if something breaks
             connection.rollback()
             
     finally:
