@@ -1,4 +1,4 @@
--- GUNNA HAVE TO CHANGE THE NAME VARIABLE IN ALL FILES BECAUSE NAME IS A KEYWORD IN SQL
+-- GUNNA HAVE TO CHANGE THE NAME AND STATUS VARIABLE IN ALL FILES BECAUSE NAME IS A KEYWORD IN SQL
 
 -- 1. Create Users Table
 CREATE TABLE IF NOT EXISTS users ( -- Create a new table named users if the table does not exist (this prevels crashing or throwing an error)
