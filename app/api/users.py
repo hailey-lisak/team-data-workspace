@@ -9,6 +9,9 @@ pydantic: acts as a strict data validation gatekeeper
 from pydantic import BaseModel, EmailStr
 from app.services import user_services
 
+from sqlmodel import Session
+from database.connection import engine
+from database.models import create_user_db
 '''
 let's us split endpoints into small, dedicated files
 '''
@@ -44,4 +47,8 @@ def create_user(payload: UserCreateRequest):
         email = payload.email,
         name = payload.name,
     )
+    # ─── 2. ADD THIS SESSION BLOCK AT THE END ─────────────────
+    with Session(engine) as session:
+        db_user = create_user_db(session=session, user_data=saved_user)
+    # ─────────────────────────────────────────────────────────
     return saved_user
