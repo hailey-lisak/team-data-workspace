@@ -1,7 +1,8 @@
 from sqlmodel import create_engine, SQLModel
 
 # 1. Replace this with your actual local PostgreSQL connection string
-DATABASE_URL = "postgresql://username:password@localhost:5432/your_database_name"
+# will have to use haileylisak:[password] when running postgre via Docker
+DATABASE_URL = "postgresql://haileylisak@localhost:5432/postgres"
 
 # 2. The engine is the connection pool manager that talks to port 5432
 engine = create_engine(DATABASE_URL, echo=True) 
