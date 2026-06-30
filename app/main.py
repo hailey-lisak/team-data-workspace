@@ -1,6 +1,16 @@
 from fastapi import FastAPI
 from app.api import users, workspaces, records, jobs
 
+from contextlib import asynccontextmanager
+from database.connection import create_db_and_tables
+
+# ─── 2. ADD THIS LIFESPAN FUNCTION TO RUN TABLE CREATION ───────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # This fires up the exact millisecond you run your uvicorn command
+    create_db_and_tables() 
+    yield
+# ─────────────────────────────────────────────────────────────
 '''
 Initializes a new FastAPI web application
 This automatically builds my interactive Swagger documentation configuration page
@@ -9,7 +19,8 @@ This automatically builds my interactive Swagger documentation configuration pag
 app = FastAPI(
     title="Team Data Workspace API",
     version = "1.0.0",
-    description = "PArt 1 Implementation"
+    description = "PArt 1 Implementation",
+    lifespan=lifespan  # ─── 3. PLUG THE LIFESPAN LINK IN HERE ───
 )
 
 '''
