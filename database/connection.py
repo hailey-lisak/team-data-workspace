@@ -1,5 +1,5 @@
 from sqlmodel import create_engine, SQLModel
-
+from database.models import User, Workspace, Record, Job
 # 1. Replace this with your actual local PostgreSQL connection string
 # will have to use haileylisak:[password] when running postgre via Docker
 DATABASE_URL = "postgresql://haileylisak@localhost:5432/postgres"
