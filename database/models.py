@@ -25,7 +25,7 @@ class User(SQLModel, table=True):
 
     # Relationship: Allows Python to easily fetch a user's workspaces
     # e.g., current_user.workspaces
-    # workspaces: list["Workspace"] = Relationship(back_populates="user")
+    workspaces: list["Workspace"] = Relationship(back_populates="user")
 # User CRUD actions
 # ─── CREATE ───────────────────────────────────────────────────────────
 def create_user_db(session: Session, user_data: dict) -> User:
@@ -71,48 +71,141 @@ def delete_user_db(session: Session, user_id: str) -> bool:
     session.commit()
     return True
 
-# # ==========================================
-# # 2. THE WORKSPACE ORM MODEL
-# # ==========================================
-# class Workspace(SQLModel, table=True):
-#     __tablename__: str = "workspaces"
+# ==========================================
+# 2. THE WORKSPACE ORM MODEL
+# ==========================================
+class Workspace(SQLModel, table=True):
+    __tablename__: str = "workspaces"
 
-#     workspace_id: str = Field(primary_key=True, max_length=50)
-#     user_id: str = Field(foreign_key="users.user_id")
-#     workspace_name: str = Field(max_length=100, nullable=False)
-#     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-
-#     # Relationships: Links backwards to the owner, and forwards to its records
-#     user: User = Relationship(back_populates="workspaces")
-#     records: list["Record"] = Relationship(back_populates="workspace")
-
-
-# # ==========================================
-# # 3. THE RECORD ORM MODEL
-# # ==========================================
-# class Record(SQLModel, table=True):
-#     __tablename__: str = "records"
-
-#     record_id: str = Field(primary_key=True, max_length=50)
-#     workspace_id: str = Field(foreign_key="workspaces.workspace_id")
+    workspace_id: str = Field(primary_key=True)
+    name: str = Field(max_length=100, nullable=False)
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     
-#     # Using the exact key your validation engine outputs
-#     name: Optional[str] = Field(max_length=100) 
-    
-#     email: str = Field(max_length=255, nullable=False)
-#     company: Optional[str] = Field(max_length=100)
-#     city: Optional[str] = Field(max_length=100)
-#     notes: Optional[str] = Field(default=None)
-    
-#     # Defaulting to False just like your database table safety net
-#     is_valid: bool = Field(default=False)
-#     tag: Optional[str] = Field(max_length=50)
-    
-#     # Handled manually by your engine's timestamps
-#     created_at: Optional[datetime] = Field(default=None)
-#     processed_at: Optional[datetime] = Field(default=None)
+    # Foreign key links back to your users table
+    user_id: str = Field(foreign_key="users.user_id", nullable=False)
 
-#     # Relationship: Allows Python to instantly see which workspace owns this record
-#     workspace: Workspace = Relationship(back_populates="records")
+    # Relationships
+    user: User = Relationship(back_populates="workspaces")
+    records: List["Record"] = Relationship(back_populates="workspace")
+    jobs: List["Job"] = Relationship(back_populates="workspace")
 
-# # make a jobs orm
+# Workspace Database Actions
+def create_workspace_db(session: Session, workspace_data: dict) -> Workspace:
+    db_workspace = Workspace(
+        workspace_id=workspace_data["workspace_id"],
+        name=workspace_data["name"],
+        user_id=workspace_data["user_id"],
+        created_at=datetime.fromisoformat(workspace_data["created_at"])
+    )
+    session.add(db_workspace)
+    session.commit()
+    session.refresh(db_workspace)
+    return db_workspace
+
+def get_workspace_db(session: Session, workspace_id: str) -> Optional[Workspace]:
+    statement = select(Workspace).where(Workspace.workspace_id == workspace_id)
+    return session.exec(statement).first()
+
+def update_workspace_db(session: Session, workspace_id: str, new_name: str) -> Optional[Workspace]:
+    db_workspace = get_workspace_db(session, workspace_id)
+    if db_workspace:
+        db_workspace.name = new_name.strip()[:100]
+        session.add(db_workspace)
+        session.commit()
+        session.refresh(db_workspace)
+    return db_workspace
+
+def delete_workspace_db(session: Session, workspace_id: str) -> bool:
+    db_workspace = get_workspace_db(session, workspace_id)
+    if not db_workspace:
+        return False
+    session.delete(db_workspace)
+    session.commit()
+    return True
+
+
+# ==========================================
+# 3. THE RECORD ORM MODEL
+# ==========================================
+class Record(SQLModel, table=True):
+    __tablename__: str = "records"
+
+    record_id: str = Field(primary_key=True)
+    raw_data: str = Field(nullable=False)  # Your data payload string
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    
+    # Foreign key links back to your workspaces table
+    workspace_id: str = Field(foreign_key="workspaces.workspace_id", nullable=False)
+
+    # Relationship back to its workspace parent
+    workspace: Workspace = Relationship(back_populates="records")
+
+# Record Database Actions
+def create_record_db(session: Session, record_data: dict) -> Record:
+    db_record = Record(
+        record_id=record_data["record_id"],
+        raw_data=record_data["raw_data"],
+        workspace_id=record_data["workspace_id"],
+        created_at=datetime.fromisoformat(record_data["created_at"])
+    )
+    session.add(db_record)
+    session.commit()
+    session.refresh(db_record)
+    return db_record
+
+def get_record_db(session: Session, record_id: str) -> Optional[Record]:
+    statement = select(Record).where(Record.record_id == record_id)
+    return session.exec(statement).first()
+
+def delete_record_db(session: Session, record_id: str) -> bool:
+    db_record = get_record_db(session, record_id)
+    if not db_record:
+        return False
+    session.delete(db_record)
+    session.commit()
+    return True
+
+
+# ==========================================
+# 4. THE JOB ORM MODEL
+# ==========================================
+class Job(SQLModel, table=True):
+    __tablename__: str = "jobs"
+
+    job_id: str = Field(primary_key=True)
+    task_type: str = Field(max_length=50, nullable=False)
+    status: str = Field(max_length=20, default="pending", nullable=False)
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    
+    # Foreign key links back to your workspaces table
+    workspace_id: str = Field(foreign_key="workspaces.workspace_id", nullable=False)
+
+    # Relationship back to its workspace parent
+    workspace: Workspace = Relationship(back_populates="jobs")
+
+# Job Database Actions
+def create_job_db(session: Session, job_data: dict) -> Job:
+    db_job = Job(
+        job_id=job_data["job_id"],
+        task_type=job_data["task_type"],
+        status=job_data.get("status", "pending"),
+        workspace_id=job_data["workspace_id"],
+        created_at=datetime.fromisoformat(job_data["created_at"])
+    )
+    session.add(db_job)
+    session.commit()
+    session.refresh(db_job)
+    return db_job
+
+def get_job_db(session: Session, job_id: str) -> Optional[Job]:
+    statement = select(Job).where(Job.job_id == job_id)
+    return session.exec(statement).first()
+
+def update_job_status_db(session: Session, job_id: str, new_status: str) -> Optional[Job]:
+    db_job = get_job_db(session, job_id)
+    if db_job:
+        db_job.status = new_status.strip()[:20]
+        session.add(db_job)
+        session.commit()
+        session.refresh(db_job)
+    return db_job
