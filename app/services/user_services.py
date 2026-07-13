@@ -6,7 +6,9 @@ uuid = Universally Unique Identifier
 
 import uuid
 from datetime import datetime, timezone
-def create_user(email: str, name: str) -> dict:
+from database.models import create_user_db
+
+def create_user(db, email: str, name: str) -> dict:
     '''
     Generates a random ID, strips hyphens (.hex), and cuts it down to the first 8 characters ([:8])
     '''
@@ -31,13 +33,13 @@ def create_user(email: str, name: str) -> dict:
     #all we do is call the function and let the library handle it 
 
     #work on orm and trace the call, create diagram on how its functioning
-    print("\n"+"="*40)
+    """ print("\n"+"="*40)
     print("STORAGE EVENT: TEMPORARY PRINT OUT")
     print(f"Successfully Created New User Profile:")
     print(f" - User ID: {new_user['user_id']}")
     print(f" - Name: {new_user['name']}")
     print(f" - Email: {new_user['email']}")
     print(f" - Created At: {new_user['created_at']}")
-    print("="*40 + "\n")
-
+    print("="*40 + "\n") """
+    create_user_db(session=db, user_data=new_user)
     return new_user
