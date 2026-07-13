@@ -1,7 +1,14 @@
 from typing import List, Optional
 from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship, Session, select
-
+# edis to orm to call service to ccall orm to then create a rec ord in db
+# update docker compose to include the SQL alchemy upgrades to docker then push and reploy docker
+#then use curl command
+#its running on the server
+#send email about progress on friday
+#get test file done, integrate and get recorfd inserted and test tfiels shoudl rfun and be able tgo show the recorfd persisted for insert inset inster get get get
+#implement sql alcehmy in orm and integrate the call with services and use syncrhonous calls then asynchronous alchemy calls
+#read about synch and async and get everything integreated and have eveerything deployed as a container, be able to run a query
 # ==========================================
 # 1. THE USER ORM MODEL
 # use orm and its methods to actually do crud operations

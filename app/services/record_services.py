@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from pydantic import EmailStr
+from database.models import create_record_db, Record  # Import your specific DB functionh
 '''
 More logic here because it's a Data Validation and Categorization Engine
     - job is to look at a messy incoming record, analyze its contents, and make executive decisions about it
@@ -8,7 +9,7 @@ More logic here because it's a Data Validation and Categorization Engine
 created_at vs processed_at
     - when a request was made vs when the server finished dealing with it
 '''
-def create_record(workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
+def create_record(db, workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
     '''should every id be truncated to 8 characters?'''
     record_id = f"rec_{uuid.uuid4().hex[:8]}"
     created_at = datetime.now(timezone.utc).isoformat()
@@ -45,7 +46,7 @@ def create_record(workspace_id: str, name: str, email: str, company: str, city: 
         "created_at": created_at,
         "processed_at": processed_at
     }
-    print("\n"+"="*40)
+    """ print("\n"+"="*40)
     print("STORAGE EVENT: TEMPORARY PRINT OUT")
     print(f"Successfully Creted New Record:")
     print(f" - Record ID: {new_record['record_id']}")
@@ -59,6 +60,7 @@ def create_record(workspace_id: str, name: str, email: str, company: str, city: 
     print(f" - Tag Assigned: {new_record['tag']}")
     print(f" - Created At: {new_record['created_at']}")
     print(f" - Processed At: {new_record['processed_at']}")
-    print("="*40 + "\n")
+    print("="*40 + "\n") """
+    db_record = create_record_db(session=db, record_data=new_record)
 
     return new_record
