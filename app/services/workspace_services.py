@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from database.models import create_workspace_db  # Clears the model warning
 
-def create_workspace(name: str, user_id: str) -> dict:
+def create_workspace(db, name: str, user_id: str) -> dict:
     workspace_id = f"wsp_{uuid.uuid4().hex[:8]}"
     created_at = datetime.now(timezone.utc).isoformat()
 

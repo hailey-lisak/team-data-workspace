@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime, timezone
+from database.models import create_job_db, get_job_db
 
 # Responsible for updating the db so the frontend knows what's happening
 # connects frontend to backend
-def create_job(workspace_id: str) -> dict:
+def create_job(db, workspace_id: str) -> dict:
     job_id = f"job_{uuid.uuid4().hex[:8]}"
     created_at = datetime.now(timezone.utc).isoformat()
 
@@ -17,7 +18,7 @@ def create_job(workspace_id: str) -> dict:
         "started_at": None,
         "completed_at": None
     }
-
+    """ 
     print("\n"+"="*40)
     print("STORAGE EVENT: TEMPORARY PRINT OUT")
     print(f"Successfully Created New Job:")
@@ -29,11 +30,28 @@ def create_job(workspace_id: str) -> dict:
     print(f" - Created At: {new_job['created_at']}")
     print(f" - Started At: {new_job['started_at']}")
     print(f" - Completed At: {new_job['completed_at']}")
-    print("="*40 + "\n")
+    print("="*40 + "\n") """
+    create_job_db(session=db, job_data=new_job)
 
     return new_job
 
-def get_job_status(job_id: str) -> dict:
+def get_job_status(db, job_id: str) -> dict:
+    # 1. Calls your perfect get_job_db function
+    db_job = get_job_db(session=db, job_id=job_id)
+    
+    if not db_job:
+        return {"error": "Job not found"}
+        
+    # 2. Extract properties directly from your Job class attributes:
+    return {
+        "job_id": db_job.job_id,
+        "task_type": db_job.task_type,  # from your models.py Job class
+        "status": db_job.status,        # from your models.py Job class
+        "workspace_id": db_job.workspace_id,
+        "created_at": db_job.created_at.isoformat() if db_job.created_at else None
+    }
+
+""" def get_job_status(job_id: str) -> dict:
     print("\n"+"="*40)
     print(f"STORAGE EVENT: TEMPORARY PRINT OUT")
     print(f"Fetching Status for Job ID: {job_id.strip()}")
@@ -46,4 +64,4 @@ def get_job_status(job_id: str) -> dict:
         "created_at": datetime.now(timezone.utc).isoformat(),
         "started_at": datetime.now(timezone.utc).isoformat(),
         "completed_at": datetime.now(timezone.utc).isoformat()
-    }
+    } """
