@@ -8,7 +8,7 @@ version: '3.8' # specifies what version of the Docker Compose configuration form
 
 services: #below this line is a list of the containers (or services) that I need built and run for my application
   web:
-    build: .
+    build: ./docker
     container_name: team_data_app
     restart: always
     ports:
