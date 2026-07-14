@@ -39,9 +39,11 @@ services: #below this line is a list of the containers (or services) that I need
     # master access password (password)
     # creates an emtpy DB (workspace_db) 
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: workspace_db
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password123
+      - DB_NAME=postgres
     
     # Creates a bridge between my MAc's network and the container's network
     # DB communicate over digital "ports" -> Postgre defaults to port 5432
