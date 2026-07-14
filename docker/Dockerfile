@@ -1,4 +1,4 @@
-FROM python:3.14-slim
+FROM python:3.11-slim
 WORKDIR /app
 
 # Install Python deps first for better layer caching
