@@ -25,7 +25,8 @@ from sqlmodel import Field, SQLModel, Relationship, Session, select
 class User(SQLModel, table=True):
     __tablename__: str = "users"  # Links directly to your 'users' table
 
-    user_id: str = Field(primary_key=True)
+    #user_id: str = Field(primary_key=True)
+    user_id: Optional[str] = Field(default=None, primary_key=True)
     name: str = Field(max_length=100, nullable=False)
     email: str = Field(max_length=255, unique=True, nullable=False)
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
