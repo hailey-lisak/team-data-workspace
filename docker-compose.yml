@@ -49,7 +49,7 @@ services: #below this line is a list of the containers (or services) that I need
     # forward that traffic straight into the container's port 5432"
     # 5432 is PostgreSQL's unique port number
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
     # Containers are temporary, so if you turn a container off, everything inside it vanishes
     # To prevent users and workspaces from being deleted every time I close the terminal,
