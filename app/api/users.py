@@ -41,7 +41,7 @@ Handles the core business logic and does the heavy lifting
 payload: the actual data being carried in the body of the request
     - the raw bundle of data being sent over the server
 '''
-@router.post("/users", status_code=status.HTTP_201_CREATED)
+""" @router.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(payload: UserCreateRequest): 
     saved_user = user_services.create_user(
         email = payload.email,
@@ -51,4 +51,17 @@ def create_user(payload: UserCreateRequest):
     with Session(engine) as session:
         db_user = create_user_db(session=session, user_data=saved_user)
     # ─────────────────────────────────────────────────────────
+    return saved_user """
+@router.post("/users", status_code=status.HTTP_201_CREATED)
+def create_user(payload: UserCreateRequest): 
+    # 1. Open the database session first
+    with Session(engine) as session:
+        # 2. Pass the session ('db') into your service
+        saved_user = user_services.create_user(
+            email=payload.email,
+            name=payload.name,
+            db=session  # <--- This passes the required 'db' argument!
+        )
+        
+    # 3. Return the saved user data
     return saved_user

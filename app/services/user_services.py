@@ -7,8 +7,9 @@ uuid = Universally Unique Identifier
 import uuid
 from datetime import datetime, timezone
 from database.models import create_user_db
+from sqlmodel import Session
 
-def create_user(db, email: str, name: str) -> dict:
+def create_user(db: Session, email: str, name: str) -> dict:
     '''
     Generates a random ID, strips hyphens (.hex), and cuts it down to the first 8 characters ([:8])
     '''
