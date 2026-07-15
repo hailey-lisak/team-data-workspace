@@ -16,7 +16,7 @@ services: #below this line is a list of the containers (or services) that I need
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password123@db:5432/workspace_db
+      - DATABASE_URL=postgresql://postgres:password123@db:5432/postgres
     depends_on:
       - db
   db: 
@@ -41,11 +41,14 @@ services: #below this line is a list of the containers (or services) that I need
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=password123
-      - DB_NAME=postgres
+      #- DB_HOST=db
+      #- DB_PORT=5432
+      #- DB_USER=postgres
+      #- DB_PASSWORD=password123
+      #- DB_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_DB=postgres
     
     # Creates a bridge between my MAc's network and the container's network
     # DB communicate over digital "ports" -> Postgre defaults to port 5432

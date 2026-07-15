@@ -3,7 +3,11 @@ import os
 from dotenv import load_dotenv
 
 # Load the keys from the .env file at the root of the project
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+#load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+
 
 def test_db_connection_and_setup():
     connection = None
@@ -11,12 +15,20 @@ def test_db_connection_and_setup():
         print("🔄 Attempting to connect to local PostgreSQL securely...")
         
         # Fetch credentials securely from the environment variables
+        db_host = os.getenv("DB_HOST", "db")        # <-- Defaults to 'db' (Docker network) instead of localhost!
+        db_port = os.getenv("DB_PORT", "5432")
+        db_user = os.getenv("DB_USER", "postgres")
+        db_pass = os.getenv("DB_PASSWORD", "password123")
+        db_name = os.getenv("DB_NAME", "postgres")
+
+        print(f"📡 Connecting to {db_host}:{db_port} as user '{db_user}'...")
+
         connection = psycopg2.connect(
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            database=os.getenv("DB_NAME")
+            user=db_user,
+            password=db_pass,
+            host=db_host,
+            port=db_port,
+            database=db_name
         )
         
         #specific object responsible for taking a raw SQL command from Python, running it across the pipeline to the Postgres database, and bringing back the answer
