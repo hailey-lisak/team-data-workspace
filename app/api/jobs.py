@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 from app.services import job_services
@@ -16,10 +16,21 @@ class JobUpdateRequest(BaseModel):
     error_message: Optional[str] = None
 
 @router.post("/jobs", status_code=status.HTTP_201_CREATED)
-def create_job_endpoint(payload: JobCreateRequest):
+def create_job_endpoint(payload: JobCreateRequest, background_tasks: BackgroundTasks):
     with Session(engine) as session:
         try:
-            return job_services.create_job(db=session, workspace_id=payload.workspace_id)
+            # 1. Create the database job entry baseline like before
+            new_job = job_services.create_job(db=session, workspace_id=payload.workspace_id)
+            
+            # 2. Spin off the processing task to run independently in the background
+            background_tasks.add_task(
+                job_services.process_workspace_data_worker,
+                db=session,
+                job_id=new_job["job_id"],
+                workspace_id=payload.workspace_id.strip()
+            )
+            
+            return new_job
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
