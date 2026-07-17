@@ -20,8 +20,8 @@ def create_job_endpoint(payload: JobCreateRequest):
     with Session(engine) as session:
         try:
             return job_services.create_job(db=session, workspace_id=payload.workspace_id)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Ensure the Workspace ID is valid.")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/jobs/{job_id}")
 def get_job_endpoint(job_id: str):

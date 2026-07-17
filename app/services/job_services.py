@@ -1,20 +1,23 @@
 import uuid
 from datetime import datetime, timezone
 from sqlmodel import Session
-from database.models import Job
+from database.models import Job, Record
+from sqlmodel import select, func
+
 
 def create_job(db: Session, workspace_id: str) -> dict:
-    """
-    Initializes a background processing job for a workspace.
-    """
     job_id = f"job_{uuid.uuid4().hex[:8]}"
     created_at_dt = datetime.now(timezone.utc)
+
+    # THIS IS THE MAGIC LINE - Ensure this is in your file!
+    record_count_query = select(func.count(Record.record_id)).where(Record.workspace_id == workspace_id.strip())
+    existing_records_count = db.exec(record_count_query).one()
 
     db_job = Job(
         job_id=job_id,
         workspace_id=workspace_id.strip(),
         status="pending",
-        total_records=0,
+        total_records=existing_records_count,  # Uses the dynamic count!
         error_message=None,
         created_at=created_at_dt,
         started_at=None,
