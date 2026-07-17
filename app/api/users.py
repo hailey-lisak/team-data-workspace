@@ -6,7 +6,7 @@ pydantic: acts as a strict data validation gatekeeper
                 - allows FastAPI to automatically read the class and convert incoming JSON text into a Python object
                 - gives access to built-in helper methods which instantly turns validated data back into a standard Python dictionary
 ''' 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from app.services import user_services
 from sqlalchemy import select
 from sqlmodel import Session
@@ -29,6 +29,14 @@ BaseModel: translates incoming raw JSON text into a clean Python object
 class UserCreateRequest(BaseModel):
     email: EmailStr
     name: str
+    @field_validator("email")
+    @classmethod
+    def email_to_lowercase(cls, value: str) -> str:
+        """
+        Forces the incoming email payload to be completely lowercase and stripped
+        before it ever touches a service layer or database.
+        """
+        return value.strip().lower()
     
 '''
 @router -> registers the route with FastAPI, so it knows to listen for incoming requests at this endpoint
