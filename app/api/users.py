@@ -8,10 +8,10 @@ pydantic: acts as a strict data validation gatekeeper
 ''' 
 from pydantic import BaseModel, EmailStr
 from app.services import user_services
-
+from sqlalchemy import select
 from sqlmodel import Session
 from database.connection import engine
-from database.models import create_user_db
+from database.models import User
 '''
 let's us split endpoints into small, dedicated files
 '''
@@ -61,7 +61,39 @@ def create_user(payload: UserCreateRequest):
             email=payload.email,
             name=payload.name,
             db=session  # <--- This passes the required 'db' argument!
-        )
-        
+        )   
     # 3. Return the saved user data
     return saved_user
+@router.get("/users")
+def get_users():
+    """
+    Fetches and returns all users from the database safely.
+    """
+    with Session(engine) as session:
+        # By executing select(User) directly, we fetch the mapped objects
+        users = session.exec(select(User)).all()
+        
+        formatted_users = []
+        for user in users:
+            # 1. If it's a SQLModel/Pydantic object (ideal)
+            if hasattr(user, "model_dump"):
+                formatted_users.append(user.model_dump())
+            elif hasattr(user, "dict"):
+                formatted_users.append(user.dict())
+            # 2. If it is returned as a tuple/row object by the driver
+            elif hasattr(user, "_asdict"):
+                formatted_users.append(user._asdict())
+            # 3. Fallback: If it's a raw tuple, map it manually based on your DB columns
+            elif isinstance(user, tuple):
+                # Columns: id, name, email, created_at (adjust names if they differ in your DB)
+                formatted_users.append({
+                    "user_id": user[0],
+                    "name": user[1],
+                    "email": user[2],
+                    "created_at": user[3]
+                })
+            else:
+                # If it's already a dictionary
+                formatted_users.append(user)
+                
+        return formatted_users
