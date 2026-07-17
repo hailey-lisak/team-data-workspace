@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlmodel import Session
 from database.connection import engine
 from database.models import User
+from fastapi import HTTPException
 '''
 let's us split endpoints into small, dedicated files
 '''
@@ -73,35 +74,49 @@ def create_user(payload: UserCreateRequest):
     # 3. Return the saved user data
     return saved_user
 @router.get("/users")
-def get_users():
+def get_users_endpoint():
     """
-    Fetches and returns all users from the database safely.
+    Fetches and returns all users from the database.
     """
     with Session(engine) as session:
-        # By executing select(User) directly, we fetch the mapped objects
-        users = session.exec(select(User)).all()
+        # We let the service layer do all the heavy lifting!
+        return user_services.get_all_users(db=session)
+    
+# --- 1. NEW DELETE ENDPOINT ---
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_endpoint(user_id: str):
+    """
+    Removes a user permanently using their unique ID.
+    """
+    with Session(engine) as session:
+        success = user_services.delete_user(db=session, user_id=user_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="User not found")
+        return None
+
+# --- 2. NEW UPDATE SCHEMA ---
+class UserUpdateRequest(BaseModel):
+    email: EmailStr | None = None
+    name: str | None = None
+
+# --- 3. NEW UPDATE ENDPOINT ---
+@router.put("/users/{user_id}")
+def update_user_endpoint(user_id: str, payload: UserUpdateRequest):
+    """
+    Updates an existing user's details.
+    """
+    # Don't update anything if they sent an empty request body
+    if payload.email is None and payload.name is None:
+        raise HTTPException(status_code=400, detail="Provide name or email to update")
         
-        formatted_users = []
-        for user in users:
-            # 1. If it's a SQLModel/Pydantic object (ideal)
-            if hasattr(user, "model_dump"):
-                formatted_users.append(user.model_dump())
-            elif hasattr(user, "dict"):
-                formatted_users.append(user.dict())
-            # 2. If it is returned as a tuple/row object by the driver
-            elif hasattr(user, "_asdict"):
-                formatted_users.append(user._asdict())
-            # 3. Fallback: If it's a raw tuple, map it manually based on your DB columns
-            elif isinstance(user, tuple):
-                # Columns: id, name, email, created_at (adjust names if they differ in your DB)
-                formatted_users.append({
-                    "user_id": user[0],
-                    "name": user[1],
-                    "email": user[2],
-                    "created_at": user[3]
-                })
-            else:
-                # If it's already a dictionary
-                formatted_users.append(user)
-                
-        return formatted_users
+    with Session(engine) as session:
+        updated_user = user_services.update_user(
+            db=session,
+            user_id=user_id,
+            email=payload.email,
+            name=payload.name
+        )
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        return updated_user
