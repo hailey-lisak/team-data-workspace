@@ -1,19 +1,13 @@
 import uuid
 from datetime import datetime, timezone
-from pydantic import EmailStr
-from database.models import create_record_db, Record  # Import your specific DB functionh
-'''
-More logic here because it's a Data Validation and Categorization Engine
-    - job is to look at a messy incoming record, analyze its contents, and make executive decisions about it
-    - just has a big checklist
-created_at vs processed_at
-    - when a request was made vs when the server finished dealing with it
-'''
-def create_record(db, workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
-    '''should every id be truncated to 8 characters?'''
-    record_id = f"rec_{uuid.uuid4().hex[:8]}"
-    created_at = datetime.now(timezone.utc).isoformat()
+from sqlmodel import Session
+from database.models import Record
 
+def create_record(db: Session, workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
+    record_id = f"rec_{uuid.uuid4().hex[:8]}"
+    created_at_dt = datetime.now(timezone.utc)
+
+    # 1. Your original Data Cleansing Engine
     name_clean = name.strip() if name else ""
     email_clean = email.strip().lower() if email else ""
     company_clean = company.strip() if company else ""
@@ -22,6 +16,7 @@ def create_record(db, workspace_id: str, name: str, email: str, company: str, ci
 
     is_valid = bool(email_clean)
 
+    # 2. Your original Categorization Rules
     if not email_clean and not company_clean:
         tag = "incomplete"
     elif not email_clean:
@@ -31,36 +26,64 @@ def create_record(db, workspace_id: str, name: str, email: str, company: str, ci
     else:
         tag = "complete"    
     
-    processed_at = datetime.now(timezone.utc).isoformat()
+    processed_at_dt = datetime.now(timezone.utc)
 
-    new_record = {
-        "record_id": record_id,
-        "workspace_id": workspace_id,
-        "name": name_clean,
-        "email": email_clean,
-        "company": company_clean,
-        "city": city_clean,
-        "notes": notes_clean,
-        "is_valid": is_valid,
-        "tag": tag,
-        "created_at": created_at,
-        "processed_at": processed_at
+    # 3. Direct SQLModel mapping
+    db_record = Record(
+        record_id=record_id,
+        workspace_id=workspace_id,
+        name=name_clean,
+        email=email_clean,
+        company=company_clean,
+        city=city_clean,
+        notes=notes_clean,
+        is_valid=is_valid,
+        tag=tag,
+        created_at=created_at_dt,
+        processed_at=processed_at_dt
+    )
+    
+    db.add(db_record)
+    db.commit()
+    db.refresh(db_record)
+
+    # Return the dictionary exactly as Part 1 expected
+    return {
+        "record_id": db_record.record_id,
+        "workspace_id": db_record.workspace_id,
+        "name": db_record.name,
+        "email": db_record.email,
+        "company": db_record.company,
+        "city": db_record.city,
+        "notes": db_record.notes,
+        "is_valid": db_record.is_valid,
+        "tag": db_record.tag,
+        "created_at": db_record.created_at.isoformat(),
+        "processed_at": db_record.processed_at.isoformat()
     }
-    """ print("\n"+"="*40)
-    print("STORAGE EVENT: TEMPORARY PRINT OUT")
-    print(f"Successfully Creted New Record:")
-    print(f" - Record ID: {new_record['record_id']}")
-    print(f" - Workspace ID: {new_record['workspace_id']}")
-    print(f" - Name: {new_record['name']}")     
-    print(f" - Email: {new_record['email']}")
-    print(f" - Company: {new_record['company']}")
-    print(f" - City: {new_record['city']}")
-    print(f" - Notes: {new_record['notes']}")
-    print(f" - Status: {new_record['is_valid']}")
-    print(f" - Tag Assigned: {new_record['tag']}")
-    print(f" - Created At: {new_record['created_at']}")
-    print(f" - Processed At: {new_record['processed_at']}")
-    print("="*40 + "\n") """
-    db_record = create_record_db(session=db, record_data=new_record)
 
-    return new_record
+def get_record(db: Session, record_id: str) -> dict | None:
+    db_record = db.get(Record, record_id)
+    if not db_record:
+        return None
+    return {
+        "record_id": db_record.record_id,
+        "workspace_id": db_record.workspace_id,
+        "name": db_record.name,
+        "email": db_record.email,
+        "company": db_record.company,
+        "city": db_record.city,
+        "notes": db_record.notes,
+        "is_valid": db_record.is_valid,
+        "tag": db_record.tag,
+        "created_at": db_record.created_at.isoformat(),
+        "processed_at": db_record.processed_at.isoformat()
+    }
+
+def delete_record(db: Session, record_id: str) -> bool:
+    db_record = db.get(Record, record_id)
+    if not db_record:
+        return False
+    db.delete(db_record)
+    db.commit()
+    return True

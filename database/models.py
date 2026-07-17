@@ -139,14 +139,25 @@ class Record(SQLModel, table=True):
     __tablename__: str = "records"
 
     record_id: str = Field(primary_key=True)
-    raw_data: str = Field(nullable=False)  # Your data payload string
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    
-    # Foreign key links back to your workspaces table
     workspace_id: str = Field(foreign_key="workspaces.workspace_id", nullable=False)
+    
+    # Engine Data Fields
+    name: str = Field(default="", max_length=100)
+    email: str = Field(default="", max_length=255)
+    company: str = Field(default="", max_length=100)
+    city: str = Field(default="", max_length=100)
+    notes: Optional[str] = Field(default="")
+    
+    # Validation Fields
+    is_valid: bool = Field(default=False)
+    tag: str = Field(default="incomplete", max_length=50)
+    
+    # Timestamps
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    processed_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
     # Relationship back to its workspace parent
-    workspace: Workspace = Relationship(back_populates="records")
+    workspace: "Workspace" = Relationship(back_populates="records")
 
 # Record Database Actions
 def create_record_db(session: Session, record_data: dict) -> Record:
@@ -181,15 +192,19 @@ class Job(SQLModel, table=True):
     __tablename__: str = "jobs"
 
     job_id: str = Field(primary_key=True)
-    task_type: str = Field(max_length=50, nullable=False)
-    status: str = Field(max_length=20, default="pending", nullable=False)
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    
-    # Foreign key links back to your workspaces table
     workspace_id: str = Field(foreign_key="workspaces.workspace_id", nullable=False)
+    
+    status: str = Field(default="pending", max_length=20)
+    total_records: int = Field(default=0)
+    error_message: Optional[str] = Field(default=None)
+    
+    # Process Timestamps
+    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    started_at: Optional[datetime] = Field(default=None)
+    completed_at: Optional[datetime] = Field(default=None)
 
     # Relationship back to its workspace parent
-    workspace: Workspace = Relationship(back_populates="jobs")
+    workspace: "Workspace" = Relationship(back_populates="jobs")
 
 # Job Database Actions
 def create_job_db(session: Session, job_data: dict) -> Job:
