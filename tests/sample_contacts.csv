@@ -1,4 +1,5 @@
 name,email,company,city,notes
-Alice Smith,alice@gmail.com,VRB,Pittsburgh,Pristine record
-  John Doe   ,JD@gmail.com,,Gotham,Needs trimming
-Bob,broken-email,Wayne Enterprises,,Invalid email test
+John Doe,john@example.com,Acme Corp,New York,Prospect
+Jane Smith,jane@example.com,Initech,Austin,Lead
+,, ,,
+Bob Johnson,bob@example.com,Stark Indus,Los Angeles,VIP

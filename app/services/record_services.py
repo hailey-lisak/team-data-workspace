@@ -2,6 +2,8 @@ import uuid
 from datetime import datetime, timezone
 from sqlmodel import Session
 from database.models import Record
+from sqlalchemy.orm import Session
+
 
 def create_record(db: Session, workspace_id: str, name: str, email: str, company: str, city: str, notes: str = "") -> dict:
     record_id = f"rec_{uuid.uuid4().hex[:8]}"
@@ -87,3 +89,4 @@ def delete_record(db: Session, record_id: str) -> bool:
     db.delete(db_record)
     db.commit()
     return True
+

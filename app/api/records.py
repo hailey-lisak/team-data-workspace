@@ -2,11 +2,8 @@ from pydantic import BaseModel
 from app.services import record_services
 from sqlmodel import Session
 from database.connection import engine
-#import csv
-#import codecs
 from database.models import Record, Workspace
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
-
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 router = APIRouter()
 
 # Schema matching your engine fields
