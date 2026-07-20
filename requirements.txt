@@ -5,3 +5,4 @@ sqlmodel==0.0.18
 psycopg2-binary
 uvicorn
 email-validator
+python-multipart

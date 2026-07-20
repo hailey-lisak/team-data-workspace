@@ -4,6 +4,8 @@ from sqlmodel import Session
 from database.connection import engine
 from database.models import Record, Workspace
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
+import io
+import csv
 router = APIRouter()
 
 # Schema matching your engine fields
@@ -47,3 +49,37 @@ def delete_record_endpoint(record_id: str):
             raise HTTPException(status_code=404, detail="Record not found")
         return None
 
+# CSV Upload Endpoint
+@router.post("/records/import", status_code=status.HTTP_201_CREATED)
+def import_records_csv(workspace_id: str, file: UploadFile = File(...)):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="File must be a CSV.")
+
+    contents = file.file.read().decode("utf-8")
+    buffer = io.StringIO(contents)
+    reader = csv.DictReader(buffer)
+
+    created_records = []
+    with Session(engine) as session:
+        for row in reader:
+            # Skip completely empty rows
+            #if not any(row.values()):
+            #    continue
+            if not any(val and val.strip() for val in row.values()):
+                continue
+
+            record = record_services.create_record(
+                db=session,
+                workspace_id=workspace_id,
+                name=row.get("name", ""),
+                email=row.get("email", ""),
+                company=row.get("company", ""),
+                city=row.get("city", ""),
+                notes=row.get("notes", "")
+            )
+            created_records.append(record)
+
+    return {
+        "message": "CSV imported successfully!",
+        "count": len(created_records)
+    }
