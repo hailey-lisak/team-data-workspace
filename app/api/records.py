@@ -83,3 +83,16 @@ def import_records_csv(workspace_id: str, file: UploadFile = File(...)):
         "message": "CSV imported successfully!",
         "count": len(created_records)
     }
+
+
+#use a test program not swagger UI
+#python file program that can load csv file and read line by line adn for each record it should call my api with that record so that each record in my csv file will ocntinue to call api
+#take ui out and do it on a backend program
+#should be small and you can create it in under a test file
+#make integration folder a
+#everytime it calls an api make it print that it make a call with this file
+#make it say the api was able to recieve the call rfrom this test program
+#try to change endpoint by changing random characters to the endpoint, it will obviously throw an error and make a try/except
+#this is test file for post
+#create another test file for get
+#test services depl.oyed on docker, not lcoally
