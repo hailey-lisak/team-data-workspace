@@ -1,40 +1,88 @@
+import uuid
 import requests
 
 BASE_URL = "http://localhost:8000"
 
-def test_jobs_api():
-    print("\n=== STARTING INTEGRATION TEST: JOBS (POST, GET, PUT) ===")
 
-    # 1. POST (Create)
-    job_payload = {"job_type": "csv_export", "status": "pending"}
-    print("1. Calling POST /jobs/ to create background task...")
-    create_resp = requests.post(f"{BASE_URL}/jobs/", json=job_payload)
-    assert create_resp.status_code in (200, 201), f"Create failed: {create_resp.text}"
-    job_id = create_resp.json()["id"]
-    print(f"  -> SUCCESS: Created Job ID {job_id}")
+def test_jobs_crud():
+    print("\n=== STARTING INTEGRATION TEST: JOBS (FULL CRUD) ===")
 
-    # 2. GET (Read)
-    print(f"2. Calling GET /jobs/{job_id}")
-    get_resp = requests.get(f"{BASE_URL}/jobs/{job_id}")
-    assert get_resp.status_code == 200, f"Read failed: {get_resp.text}"
-    print(f"  -> SUCCESS: Job status is '{get_resp.json().get('status')}'")
+    # 0. SETUP: PREREQUISITE USER & WORKSPACE
+    random_id = uuid.uuid4().hex[:6]
 
-    # 3. PUT (Full Replace / Update)
-    put_payload = {"job_type": "csv_export", "status": "completed"}
-    print(f"3. Calling PUT /jobs/{job_id} to replace resource state...")
-    put_resp = requests.put(f"{BASE_URL}/jobs/{job_id}", json=put_payload)
-    assert put_resp.status_code == 200, f"PUT update failed: {put_resp.text}"
-    print(f"  -> SUCCESS: Job status updated via PUT to '{put_resp.json().get('status')}'")
+    # Create User
+    user_resp = requests.post(
+        f"{BASE_URL}/users/",
+        json={"email": f"job_owner_{random_id}@example.com", "name": "Job Owner"},
+    )
+    assert user_resp.status_code in (200, 201), f"User setup failed: {user_resp.text}"
+    user_id = user_resp.json().get("user_id") or user_resp.json().get("id")
 
-    # Negative Test
-    print("\n--- Testing Corrupted Endpoint (Negative Test) ---")
+    # Create Workspace
+    ws_resp = requests.post(
+        f"{BASE_URL}/workspaces",
+        json={"name": f"WS_For_Jobs_{random_id}", "user_id": user_id},
+    )
+    assert ws_resp.status_code in (200, 201), f"Workspace setup failed: {ws_resp.text}"
+    workspace_id = ws_resp.json().get("workspace_id") or ws_resp.json().get("id")
+
+    print(f"0. Setup complete: User={user_id}, Workspace={workspace_id}")
+
     try:
-        bad_resp = requests.get(f"{BASE_URL}/jobs_invalid_route/{job_id}")
-        bad_resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(f"  -> EXPECTED ERROR CAUGHT! Status {bad_resp.status_code}: {err}")
+        # 1. CREATE JOB
+        job_payload = {"workspace_id": workspace_id}
 
-    print("=== JOBS INTEGRATION TEST COMPLETED ===\n")
+        print(f"1. Calling POST /workspaces/{workspace_id}/jobs")
+        create_resp = requests.post(
+            f"{BASE_URL}/workspaces/{workspace_id}/jobs", json=job_payload
+        )
+        print(f"DEBUG Response ({create_resp.status_code}): {create_resp.text}")
+
+        assert create_resp.status_code in (
+            200,
+            201,
+        ), f"Create job failed: {create_resp.text}"
+        created_data = create_resp.json()
+
+        job_id = (
+            created_data.get("job_id")
+            or created_data.get("id")
+            or created_data.get("uuid")
+        )
+        print(f"   SUCCESS -> Created Job ID: {job_id}")
+
+        # 2. READ (GET JOB BY ID)
+        print(f"2. Calling GET /workspaces/{workspace_id}/jobs/{job_id}")
+        get_resp = requests.get(
+            f"{BASE_URL}/workspaces/{workspace_id}/jobs/{job_id}"
+        )
+        assert get_resp.status_code == 200, f"Get job failed: {get_resp.text}"
+        print(f"   SUCCESS -> Found Job Status: {get_resp.json().get('status')}")
+
+        # 3. UPDATE JOB STATUS
+        update_payload = {
+            "status": "completed",
+            "total_records": 100,
+            "error_message": "",
+        }
+        print(f"3. Calling PUT /workspaces/{workspace_id}/jobs/{job_id}")
+        put_resp = requests.put(
+            f"{BASE_URL}/workspaces/{workspace_id}/jobs/{job_id}",
+            json=update_payload,
+        )
+        assert put_resp.status_code == 200, f"Update job failed: {put_resp.text}"
+        print(
+            f"   SUCCESS -> Updated Job Status: {put_resp.json().get('status')}"
+        )
+
+    finally:
+        # CLEANUP: DELETE WORKSPACE & USER
+        print(f"4. Cleaning up Workspace ({workspace_id}) and User ({user_id})")
+        requests.delete(f"{BASE_URL}/workspaces/{workspace_id}")
+        requests.delete(f"{BASE_URL}/users/{user_id}")
+
+    print("\nALL JOB INTEGRATION TESTS PASSED SUCCESSFULLY!")
+
 
 if __name__ == "__main__":
-    test_jobs_api()
+    test_jobs_crud()
