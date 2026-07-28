@@ -1,69 +1,90 @@
-import csv
-import os
+import uuid
 import requests
 
 BASE_URL = "http://localhost:8000"
-WORKSPACE_ID = "workspace-prod-1"
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_PATH = os.path.abspath(os.path.join(CURRENT_DIR, "..", "sample_import.csv"))
 
-def test_records_api():
-    print("\n=== STARTING INTEGRATION TEST: RECORDS (POST, GET, DELETE) ===")
+def test_records_crud():
+    print("\n=== STARTING INTEGRATION TEST: RECORDS (FULL CRUD) ===")
 
-    if not os.path.exists(CSV_PATH):
-        print(f"Error: CSV file not found at {CSV_PATH}")
-        return
+    # 0. SETUP: PREREQUISITE USER & WORKSPACE
+    random_id = uuid.uuid4().hex[:6]
+    
+    # Create User
+    user_resp = requests.post(
+        f"{BASE_URL}/users/",
+        json={"email": f"rec_owner_{random_id}@example.com", "name": "Record Owner"},
+    )
+    assert user_resp.status_code in (200, 201), f"User setup failed: {user_resp.text}"
+    user_id = user_resp.json().get("user_id") or user_resp.json().get("id")
 
-    created_ids = []
+    # Create Workspace
+    ws_resp = requests.post(
+        f"{BASE_URL}/workspaces",
+        json={"name": f"WS_For_Records_{random_id}", "user_id": user_id},
+    )
+    assert ws_resp.status_code in (200, 201), f"Workspace setup failed: {ws_resp.text}"
+    workspace_id = ws_resp.json().get("workspace_id") or ws_resp.json().get("id")
 
-    # 1. POST (CSV Import)
-    print("\n--- 1. Testing POST (CSV Streaming) ---")
-    with open(CSV_PATH, mode="r", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
-        for i, row in enumerate(reader, start=1):
-            if not any(val and val.strip() for val in row.values()):
-                print(f"[Line {i}] Skipped blank/whitespace row.")
-                continue
+    print(f"0. Setup complete: User={user_id}, Workspace={workspace_id}")
 
-            payload = {
-                "workspace_id": WORKSPACE_ID,
-                "name": row.get("name", "").strip(),
-                "email": row.get("email", "").strip(),
-                "company": row.get("company", "").strip(),
-                "city": row.get("city", "").strip(),
-                "notes": row.get("notes", "").strip()
-            }
-
-            resp = requests.post(f"{BASE_URL}/records/", json=payload)
-            if resp.status_code in (200, 201):
-                rec_id = resp.json().get("id")
-                created_ids.append(rec_id)
-                print(f"[Line {i}] Saved record ID: {rec_id}")
-
-    # 2. GET (Read)
-    print("\n--- 2. Testing GET ---")
-    get_resp = requests.get(f"{BASE_URL}/records/?workspace_id={WORKSPACE_ID}")
-    assert get_resp.status_code == 200, f"GET failed: {get_resp.text}"
-    print(f"  -> SUCCESS: Fetched {len(get_resp.json())} records from workspace.")
-
-    # 3. DELETE
-    if created_ids:
-        target_id = created_ids[0]
-        print(f"\n--- 3. Testing DELETE for Record ID {target_id} ---")
-        del_resp = requests.delete(f"{BASE_URL}/records/{target_id}")
-        assert del_resp.status_code in (200, 204), f"DELETE failed: {del_resp.text}"
-        print(f"  -> SUCCESS: Deleted Record ID {target_id}")
-
-    # Negative Test
-    print("\n--- Testing Corrupted Endpoint (Negative Test) ---")
     try:
-        bad_resp = requests.get(f"{BASE_URL}/records_invalid_route/")
-        bad_resp.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(f"  -> EXPECTED ERROR CAUGHT! Status {bad_resp.status_code}: {err}")
+        # 1. CREATE RECORD
+        rec_payload = {
+            "workspace_id": workspace_id,
+            "name": f"Jane Doe {random_id}",
+            "email": f"jane_{random_id}@example.com",
+            "company": "Acme Corp",
+            "city": "New York",
+            "notes": "Integration test record",
+        }
 
-    print("=== RECORDS INTEGRATION TEST COMPLETED ===\n")
+        print(f"1. Calling POST /workspaces/{workspace_id}/records")
+        create_resp = requests.post(
+            f"{BASE_URL}/workspaces/{workspace_id}/records", json=rec_payload
+        )
+        print(f"DEBUG Response ({create_resp.status_code}): {create_resp.text}")
+
+        assert create_resp.status_code in (
+            200,
+            201,
+        ), f"Create record failed: {create_resp.text}"
+        created_data = create_resp.json()
+
+        record_id = (
+            created_data.get("record_id")
+            or created_data.get("id")
+            or created_data.get("uuid")
+        )
+        print(f"   SUCCESS -> Created Record ID: {record_id}")
+
+        # 2. READ (GET RECORD BY ID)
+        print(f"2. Calling GET /workspaces/{workspace_id}/records/{record_id}")
+        get_resp = requests.get(
+            f"{BASE_URL}/workspaces/{workspace_id}/records/{record_id}"
+        )
+        assert get_resp.status_code == 200, f"Get record failed: {get_resp.text}"
+        print(f"   SUCCESS -> Found Record Name: {get_resp.json().get('name')}")
+
+        # 3. DELETE RECORD
+        print(f"3. Calling DELETE /workspaces/{workspace_id}/records/{record_id}")
+        del_resp = requests.delete(
+            f"{BASE_URL}/workspaces/{workspace_id}/records/{record_id}"
+        )
+        assert del_resp.status_code in (
+            200,
+            204,
+        ), f"Delete record failed: {del_resp.text}"
+        print(f"   SUCCESS -> Deleted Record ID: {record_id}")
+
+    finally:
+        # CLEANUP: DELETE WORKSPACE & USER
+        print(f"4. Cleaning up Workspace ({workspace_id}) and User ({user_id})")
+        requests.delete(f"{BASE_URL}/workspaces/{workspace_id}")
+        requests.delete(f"{BASE_URL}/users/{user_id}")
+
+    print("\nALL RECORD INTEGRATION TESTS PASSED SUCCESSFULLY!")
+
 
 if __name__ == "__main__":
-    test_records_api()
+    test_records_crud()
