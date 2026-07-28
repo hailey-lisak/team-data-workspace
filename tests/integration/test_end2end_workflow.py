@@ -11,7 +11,6 @@ def test_complete_data_workspace_e2e_pipeline():
 
     unique_suffix = uuid.uuid4().hex[:6]
 
-    # Track resources for guaranteed teardown
     created_user_id = None
     created_workspace_id = None
 
@@ -50,12 +49,24 @@ def test_complete_data_workspace_e2e_pipeline():
             f"  ✓ Workspace provisioned successfully with ID: {created_workspace_id}"
         )
 
-        # STEP 3: INGEST RECORDS INTO WORKSPACE
+        # STEP 3: INGEST RECORDS INTO WORKSPACE (Updated with required fields)
         print("\n[Step 3] Ingesting batch data records into Workspace...")
         record_ids = []
         sample_records = [
-            {"title": "Q1 Sales Data", "content": "Revenue: $150k"},
-            {"title": "Q2 Sales Data", "content": "Revenue: $180k"},
+            {
+                "workspace_id": created_workspace_id,
+                "name": "Alice Smith",
+                "email": f"alice_{unique_suffix}@example.com",
+                "company": "Acme Corp",
+                "city": "New York",
+            },
+            {
+                "workspace_id": created_workspace_id,
+                "name": "Bob Jones",
+                "email": f"bob_{unique_suffix}@example.com",
+                "company": "Tech Inc",
+                "city": "San Francisco",
+            },
         ]
 
         for record in sample_records:
