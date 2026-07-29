@@ -99,6 +99,7 @@ class Workspace(SQLModel, table=True):
 
 # Workspace Database Actions
 def create_workspace_db(session: Session, workspace_data: dict) -> Workspace:
+    
     db_workspace = Workspace(
         workspace_id=workspace_data["workspace_id"],
         name=workspace_data["name"],
@@ -140,7 +141,6 @@ class Record(SQLModel, table=True):
 
     record_id: str = Field(primary_key=True)
     workspace_id: str = Field(foreign_key="workspaces.workspace_id", nullable=False)
-    
     # Engine Data Fields
     name: str = Field(default="", max_length=100)
     email: str = Field(default="", max_length=255)

@@ -19,6 +19,8 @@ services: #below this line is a list of the containers (or services) that I need
       - DATABASE_URL=postgresql://postgres:password123@db:5432/postgres
     depends_on:
       - db
+    volumes:
+      - .:/app
   db: 
     # Tells Docker to go to Docker Hub and download a pre-made, optimized package of
     # PostgreSQL version 15
