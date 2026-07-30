@@ -60,9 +60,10 @@ def sample_record_data():
 def sample_job_data():
     return {
         "job_id": TEST_JOB_ID,
-        "workspace_id": TEST_WORKSPACE_ID,
+        "workspace_id": TEST_WORKSPACE_ID,  # Matches "ws_test_123"
         "status": "pending",
         "total_records": 10,
+        "error_message": None,
         "created_at": "2026-01-01T00:00:00"
     }
 

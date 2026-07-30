@@ -202,6 +202,7 @@ class Job(SQLModel, table=True):
     
     status: str = Field(default="pending", max_length=20)
     total_records: int = Field(default=0)
+    
     error_message: Optional[str] = Field(default=None)
     
     # Process Timestamps
@@ -213,27 +214,30 @@ class Job(SQLModel, table=True):
     workspace: "Workspace" = Relationship(back_populates="jobs")
 
 # Job Database Actions
+# ✅ FIXED create_job_db
 def create_job_db(session: Session, job_data: dict) -> Job:
     db_job = Job(
         job_id=job_data["job_id"],
-        task_type=job_data["task_type"],
-        status=job_data.get("status", "pending"),
         workspace_id=job_data["workspace_id"],
-        created_at=datetime.fromisoformat(job_data["created_at"])
+        status=job_data.get("status", "pending"),
+        total_records=job_data.get("total_records", 0),
+        error_message=job_data.get("error_message"),
+        created_at=datetime.fromisoformat(job_data["created_at"]) if isinstance(job_data.get("created_at"), str) else job_data.get("created_at")
     )
     session.add(db_job)
     session.commit()
     session.refresh(db_job)
     return db_job
-
 def get_job_db(session: Session, job_id: str) -> Optional[Job]:
     statement = select(Job).where(Job.job_id == job_id)
     return session.exec(statement).first()
 
-def update_job_status_db(session: Session, job_id: str, new_status: str) -> Optional[Job]:
+def update_job_status_db(session: Session, job_id: str, new_status: str, error_message: Optional[str] = None) -> Optional[Job]:
     db_job = get_job_db(session, job_id)
     if db_job:
         db_job.status = new_status.strip()[:20]
+        if error_message is not None:
+            db_job.error_message = error_message
         session.add(db_job)
         session.commit()
         session.refresh(db_job)
