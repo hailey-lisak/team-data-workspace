@@ -163,9 +163,15 @@ class Record(SQLModel, table=True):
 def create_record_db(session: Session, record_data: dict) -> Record:
     db_record = Record(
         record_id=record_data["record_id"],
-        raw_data=record_data["raw_data"],
         workspace_id=record_data["workspace_id"],
-        created_at=datetime.fromisoformat(record_data["created_at"])
+        name=record_data.get("name", ""),
+        email=record_data.get("email", ""),
+        company=record_data.get("company", ""),
+        city=record_data.get("city", ""),
+        notes=record_data.get("notes", ""),
+        is_valid=record_data.get("is_valid", False),
+        tag=record_data.get("tag", "incomplete"),
+        created_at=datetime.fromisoformat(record_data["created_at"]) if isinstance(record_data.get("created_at"), str) else record_data.get("created_at")
     )
     session.add(db_record)
     session.commit()
