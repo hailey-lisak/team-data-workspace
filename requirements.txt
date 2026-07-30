@@ -7,3 +7,5 @@ uvicorn
 email-validator
 python-multipart
 pytest
+requests
+python-dotenv

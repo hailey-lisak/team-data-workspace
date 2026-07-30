@@ -23,17 +23,18 @@ from sqlmodel import Field, SQLModel, Relationship, Session, select
 # start with create -> start with users "create an orm for the user table and i should be able to create update and delete a user file"
 # ==========================================
 class User(SQLModel, table=True):
-    __tablename__: str = "users"  # Links directly to your 'users' table
+    __tablename__: str = "users"
 
-    #user_id: str = Field(primary_key=True)
-    user_id: Optional[str] = Field(default=None, primary_key=True)
+    user_id: str = Field(primary_key=True)
+    email: str = Field(unique=True, index=True, nullable=False)
     name: str = Field(max_length=100, nullable=False)
-    email: str = Field(max_length=255, unique=True, nullable=False)
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
-    # Relationship: Allows Python to easily fetch a user's workspaces
-    # e.g., current_user.workspaces
-    workspaces: list["Workspace"] = Relationship(back_populates="user")
+    # Relationship with cascade delete enabled
+    workspaces: List["Workspace"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 # User CRUD actions
 # ─── CREATE ───────────────────────────────────────────────────────────
 def create_user_db(session: Session, user_data: dict) -> User:
@@ -92,10 +93,16 @@ class Workspace(SQLModel, table=True):
     # Foreign key links back to your users table
     user_id: str = Field(foreign_key="users.user_id", nullable=False)
 
-    # Relationships
+    # Relationships — added cascade delete kwargs here!
     user: User = Relationship(back_populates="workspaces")
-    records: List["Record"] = Relationship(back_populates="workspace")
-    jobs: List["Job"] = Relationship(back_populates="workspace")
+    records: List["Record"] = Relationship(
+        back_populates="workspace",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    jobs: List["Job"] = Relationship(
+        back_populates="workspace",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
 # Workspace Database Actions
 def create_workspace_db(session: Session, workspace_data: dict) -> Workspace:
