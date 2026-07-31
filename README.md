@@ -31,7 +31,7 @@ This application enables users to create isolated data workspaces, bulk-import r
 
 ### Running the Application
 - ```bash
-- docker compose up -d --build   
+- docker compose up --build -d
 
 ## Testing
 - docker compose exec web pytest
