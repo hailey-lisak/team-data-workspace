@@ -1,15 +1,22 @@
 import os
+from pathlib import Path
 import uuid
 import requests
 
 # Dynamically pick up container URL or fallback to localhost
 BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
 
+# Dynamically locate sample_contacts.csv in the tests/ directory
+TESTS_DIR = Path(__file__).resolve().parent.parent
+CSV_PATH = TESTS_DIR / "sample_contacts.csv"
 
 def test_complete_data_workspace_e2e_pipeline():
     print("\n" + "=" * 60)
     print("STARTING E2E WORKFLOW TEST")
     print("=" * 60)
+
+    # Ensure the sample CSV file exists before running the pipeline
+    assert CSV_PATH.exists(), f"Sample CSV not found at expected path: {CSV_PATH}"
 
     unique_suffix = uuid.uuid4().hex[:6]
     created_user_id = None
@@ -47,26 +54,20 @@ def test_complete_data_workspace_e2e_pipeline():
         print(f"  ✓ Workspace created with ID: {created_workspace_id}")
 
         # -------------------------------------------------------------
-        # STEP 3: IMPORT RECORDS VIA CSV UPLOAD
+        # STEP 3: IMPORT RECORDS VIA ACTUAL CSV FILE
         # Hits: POST /workspaces/{workspace_id}/records/import
         # -------------------------------------------------------------
-        print(f"\n[Step 3] Uploading CSV records into Workspace {created_workspace_id}...")
+        print(f"\n[Step 3] Uploading sample_contacts.csv into Workspace {created_workspace_id}...")
         
-        csv_content = (
-            "name,email,company,city,notes\n"
-            f"Alice Smith,alice_{unique_suffix}@example.com,Acme Corp,New York,VIP Client\n"
-            f"Bob Jones,bob_{unique_suffix}@example.com,Tech Inc,San Francisco,Standard User\n"
-        )
-        
-        files = {
-            "file": ("records.csv", csv_content, "text/csv")
-        }
-        
-        # Path parameter URL: /workspaces/{created_workspace_id}/records/import
-        rec_res = requests.post(
-            f"{BASE_URL}/workspaces/{created_workspace_id}/records/import",
-            files=files,
-        )
+        with open(CSV_PATH, "rb") as csv_file:
+            files = {
+                "file": ("sample_contacts.csv", csv_file, "text/csv")
+            }
+            rec_res = requests.post(
+                f"{BASE_URL}/workspaces/{created_workspace_id}/records/import",
+                files=files,
+            )
+
         assert rec_res.status_code in (200, 201), f"CSV Import failed: {rec_res.text}"
         
         import_summary = rec_res.json()
@@ -94,9 +95,11 @@ def test_complete_data_workspace_e2e_pipeline():
         # -------------------------------------------------------------
         # STEP 5: UPDATE JOB STATUS TO COMPLETED
         # -------------------------------------------------------------
+        records_imported = import_summary.get("count") or import_summary.get("records_processed", 0)
+        
         update_job_payload = {
             "status": "completed",
-            "total_records": import_summary.get("count", 2),
+            "total_records": records_imported,
             "error_message": "",
         }
         print(f"\n[Step 5] Transitioning Job {created_job_id} -> COMPLETED")
