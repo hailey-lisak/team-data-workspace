@@ -4,8 +4,6 @@ A multi-user backend data ingestion and background processing service built with
 
 This application enables users to create isolated data workspaces, bulk-import raw contact records via CSV, run background processing jobs to clean and tag records, and query processed results safely within strict tenant boundaries.
 
-
-
 ## Key Features & Business Rules
 
 - **Resource Granularity & Allowed Actions:**
@@ -17,7 +15,8 @@ This application enables users to create isolated data workspaces, bulk-import r
   - Bulk creation (`POST`) of contact records via CSV file uploads.
   - Automatic string trimming, email lowercase normalization, and field completeness validation.
 - **System-Wide Queries:**
-  - Administrative retrieval (`GET`) provides system-wide visibility across all entities.
+  - Administrative retrieval (`GET`) of users and workspaces provides system-wide visibility across all entities.
+
 
 ## Architecture & Tech Stack
 
