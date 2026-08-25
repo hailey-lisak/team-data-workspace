@@ -9,18 +9,14 @@ By keeping these concerns separated, the system can scale horizontally and adapt
 
 ## Architecture Layers
 
-[ Client Request ]
-       │
-       ▼
+[ Client Request ] ->
+       
 [  API Layer (FastAPI)  ] app/api/ - Endpoints, Routing, Request/Response Serialization
-        │
-        ▼
+->
 [  Service Layer (Business)  ] app/services/ - Workspace isolation, Data normalization, Job Logic
-        │
-        ▼
+->
 [  Data Access (SQLModel/DB)  ] app/database/ - Database queries, ORM entities, Cascading deletes
-        │
-        ▼
+->
 [  Database Layer  ] - PostgreSQL Engine
 
 
