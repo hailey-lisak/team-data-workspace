@@ -32,12 +32,9 @@ This application enables users to create isolated data workspaces, bulk-import r
 
 ### Running the Application
 ```bash
-- docker compose up --build -d
-```
-
-### Testing
+docker compose up --build -d
 - docker compose exec web pytest
-
+```
 ### Technical Documentation
 - For detailed technical design specfications, system data flows, and infratructure setups, refer to the guides in the '/docs' directory:
   - [System Architecture](docs/architecture.md)- Layer separation, request lifecycle, data flow, and scaling patterns.
