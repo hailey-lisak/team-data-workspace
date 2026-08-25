@@ -1,4 +1,3 @@
-```markdown
 # Infrastructure & Deployment Specification
 
 ## Containerization Overview
@@ -26,6 +25,7 @@ The application uses **Docker** and **Docker Compose** to guarantee environment 
 Configuration variables are managed safely via root-level `.env` files:
 
 | Variable | Description |
+|---|---|
 | `POSTGRES_USER` | Database superuser account name |
 | `POSTGRES_PASSWORD` | Database user authentication key |
 | `POSTGRES_DB` | Default database container name |
@@ -40,3 +40,4 @@ Tests run completely isolated within the Docker container environment to prevent
 ```bash
 # Runs full pytest suite (Unit & Integration tests) inside the web container
 docker compose exec web pytest
+```
