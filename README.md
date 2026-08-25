@@ -1,5 +1,6 @@
 # Team Data Workspace API (`team-data-workspace`)
 
+
 A multi-user backend data ingestion and background processing service built with **FastAPI**, **SQLModel (SQLAlchemy)**, and **PostgreSQL**.
 
 This application enables users to create isolated data workspaces, bulk-import raw contact records via CSV, run background processing jobs to clean and tag records, and query processed results safely within strict tenant boundaries.
@@ -41,6 +42,7 @@ This application enables users to create isolated data workspaces, bulk-import r
   - [System Architecture](docs/architecture.md)- Layer separation, request lifecycle, data flow, and scaling patterns.
   - [Infrastructure and Setup](docs/infrastructure.md)- Docker containerization, database services, and environment config.
 ## Directory Tree
+```text
 .
 ├── app/
 │   ├── api/             # Route handlers & API endpoints
@@ -100,3 +102,4 @@ This application enables users to create isolated data workspaces, bulk-import r
 ├── docs/
 │     ├── architecture.md
 └──   └──  infrastructure.md
+```
