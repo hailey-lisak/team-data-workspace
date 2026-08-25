@@ -36,6 +36,10 @@ This application enables users to create isolated data workspaces, bulk-import r
 ## Testing
 - docker compose exec web pytest
 
+## Technical Documentation
+- For detailed technical design specfications, system data flows, and infratructure setups, refer to the guides in the '/docs' directory:
+  - [System Architecture](docs/architecture.md)- Layer separation, request lifecycle, data flow, and scaling patterns.
+  - [Infrastructure and Setup](docs/infrastructure.md)- Docker containerization, database services, and environment config.
 ## Directory Tree
 .
 ├── app/
@@ -64,7 +68,6 @@ This application enables users to create isolated data workspaces, bulk-import r
 │   │    ├── test_connection.py
 ├── docker/              # Dockerfiles & container configs
 │   │    ├── Dockerfile
-
 ├── set-up/              # Project setup scripts / utility files
 ├── tests/               # Integration & end-to-end test suite
 │     ├── integration
@@ -92,5 +95,8 @@ This application enables users to create isolated data workspaces, bulk-import r
 ├── .env                 # Environment variables
 ├── .gitignore
 ├── docker-compose.yml   # Docker multi-container configuration
-├── README               # Project documentation
-└── requirements.txt     # Python package dependencies
+├── README.md            # Project documentation
+├── requirements.txt     # Python package dependencies
+├── docs/
+│     ├── architecture.md
+└──   └──  infrastructure.md
